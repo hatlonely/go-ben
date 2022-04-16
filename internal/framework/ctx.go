@@ -9,19 +9,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Ctx struct {
+type CtxDesc struct {
 	Name        string
 	Description string
 	Var         interface{}
 	Ctx         map[string]refx.Options
 	Seed        map[string]refx.Options
-	Plan        []Plan
+	Plan        []PlanDesc
 }
 
-func (f *Framework) LoadCtx(defaultName string, filepath string) (*Ctx, error) {
+func (f *Framework) LoadCtx(defaultName string, filepath string) (*CtxDesc, error) {
 	stat, err := os.Stat(filepath)
 	if errors.Is(err, os.ErrNotExist) || (err == nil && stat.IsDir()) {
-		return &Ctx{
+		return &CtxDesc{
 			Name:        defaultName,
 			Description: "",
 			Var:         nil,
@@ -39,7 +39,7 @@ func (f *Framework) LoadCtx(defaultName string, filepath string) (*Ctx, error) {
 		return nil, errors.Wrapf(err, "ioutil.ReadFile failed")
 	}
 
-	var ctx Ctx
+	var ctx CtxDesc
 	if err := yaml.Unmarshal(buf, &ctx); err != nil {
 		return nil, errors.Wrapf(err, "yaml.Unmarshal failed")
 	}
