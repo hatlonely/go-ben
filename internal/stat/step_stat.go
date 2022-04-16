@@ -20,9 +20,10 @@ func NewStepStat() *StepStat {
 	}
 }
 
-func (s *StepStat) SetError(err error) {
+func (s *StepStat) SetError(err error) *StepStat {
 	s.IsErr = true
 	s.Err = err.Error()
+	return s
 }
 
 func (s *StepStat) AddSubStepStat(subStep *SubStepStat) {
