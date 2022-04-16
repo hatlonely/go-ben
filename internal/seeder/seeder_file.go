@@ -32,6 +32,9 @@ func NewFileSeederWithOptions(options *FileSeederOptions) (*FileSeeder, error) {
 			}
 			break
 		}
+		if len(buf) == 1 {
+			continue
+		}
 		var v interface{}
 		if err := jsoniter.Unmarshal(buf, &v); err != nil {
 			if options.IgnoreParseError {
