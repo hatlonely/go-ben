@@ -37,9 +37,9 @@ type ShellClient struct {
 }
 
 type ShellClientReq struct {
-	Command string            `yaml:"command,omitempty"`
-	Envs    map[string]string `yaml:"envs,omitempty"`
-	Decoder string            `yaml:"decoder,omitempty"`
+	Command string            `json:"command,omitempty"`
+	Envs    map[string]string `json:"envs,omitempty"`
+	Decoder string            `json:"decoder,omitempty"`
 }
 
 type ShellClientRes struct {
