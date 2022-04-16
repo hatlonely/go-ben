@@ -29,9 +29,10 @@ type UnitDesc struct {
 }
 
 type GroupDesc struct {
-	Times    int
-	Seconds  int
-	Parallel []int
+	Seconds     int
+	Parallel    []int
+	Quantile    []float64
+	MaxStepSize int
 }
 
 type PlanDesc struct {
