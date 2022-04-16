@@ -42,10 +42,10 @@ func NewUnitStat(
 	if stageNumber == 0 {
 		stageNumber = 100
 	}
+
 	if len(quantile) == 0 {
 		quantile = []float64{80, 90, 95, 99, 99.9}
 	}
-
 	var quantileKeys []string
 	for _, key := range quantile {
 		quantileKeys = append(quantileKeys, strconv.FormatFloat(key, 'f', -1, 64))
