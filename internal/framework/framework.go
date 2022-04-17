@@ -14,6 +14,7 @@ import (
 	"github.com/hatlonely/go-ben/internal/util"
 	"github.com/hatlonely/go-kit/refx"
 	"github.com/hatlonely/go-kit/strx"
+	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -188,11 +189,31 @@ func (f *Framework) RunStep(runtime *Runtime, unitDesc *UnitDesc) *stat.StepStat
 		seed[k] = runtime.seederMap[v].Seed()
 	}
 
+	renderArgs := map[string]interface{}{
+		"var":  runtime.variables,
+		"seed": seed,
+	}
 	for _, step := range unitDesc.Step {
-		req := step.Req
+		req, err := util.Render(step.Req, renderArgs)
+		if err != nil {
+			return stepStat.SetError(errors.WithMessage(err, "util.Render req failed"))
+		}
 		client := runtime.clientMap[step.Ctx]
 		now := time.Now()
 		name, res, err := client.Do(req)
+		if err != nil {
+			stepStat.AddErrStat(name, err)
+			return stepStat
+		}
+
+		eval, err := util.Lang.NewEvaluable(step.Res.GroupBy)
+		if err != nil {
+			stepStat.AddErrStat(name, err)
+			return stepStat
+		}
+		code, err := eval.EvalString(context.Background(), map[string]interface{}{
+			"res": res,
+		})
 		if err != nil {
 			stepStat.AddErrStat(name, err)
 			return stepStat
@@ -201,8 +222,8 @@ func (f *Framework) RunStep(runtime *Runtime, unitDesc *UnitDesc) *stat.StepStat
 			Req:     req,
 			Res:     res,
 			Name:    name,
-			Code:    "",
-			Success: false,
+			Code:    code,
+			Success: code == step.Res.Success,
 			Elapse:  time.Now().Sub(now),
 		})
 	}
