@@ -70,6 +70,8 @@ func NewUnitStat(
 		StartTime:             time.Now(),
 		MaxStepSize:           maxStepSize,
 		QuantileKeys:          quantileKeys,
+		Quantile:              map[string]time.Duration{},
+		Code:                  map[string]int{},
 	}
 }
 

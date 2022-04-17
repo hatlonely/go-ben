@@ -8,19 +8,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hatlonely/go-kit/strx"
-
-	"github.com/hatlonely/go-ben/internal/util"
-
 	"github.com/hatlonely/go-ben/internal/refcli"
 	"github.com/hatlonely/go-ben/internal/seeder"
 	"github.com/hatlonely/go-ben/internal/stat"
+	"github.com/hatlonely/go-ben/internal/util"
+	"github.com/hatlonely/go-kit/refx"
+	"github.com/hatlonely/go-kit/strx"
 	uuid "github.com/satori/go.uuid"
 )
 
 type Options struct {
-	TestDirectory string
-	PlanDirectory string
+	TestDirectory string `flag:"-t"`
+	PlanDirectory string `flag:"-p"`
 	Customize     string
 	Reporter      string
 	X             string
@@ -84,7 +83,7 @@ func (f *Framework) RunTest(directory string, runtime *Runtime) *stat.TestStat {
 		clientMap[k] = v
 	}
 	for k, v := range ctxDesc.Ctx {
-		cli, err := refcli.NewClientWithOptions(&v)
+		cli, err := refcli.NewClientWithOptions(&v, refx.WithCamelName())
 		if err != nil {
 			return stat.NewTestStat(f.id, directory, defaultName, "").SetError(err)
 		}
@@ -95,7 +94,7 @@ func (f *Framework) RunTest(directory string, runtime *Runtime) *stat.TestStat {
 		seederMap[k] = v
 	}
 	for k, v := range ctxDesc.Seed {
-		s, err := seeder.NewSeederWithOptions(&v)
+		s, err := seeder.NewSeederWithOptions(&v, refx.WithCamelName())
 		if err != nil {
 			return stat.NewTestStat(f.id, directory, defaultName, "").SetError(err)
 		}
@@ -184,7 +183,7 @@ func (f *Framework) RunUnit(
 
 func (f *Framework) RunStep(runtime *Runtime, unitDesc *UnitDesc) *stat.StepStat {
 	stepStat := stat.NewStepStat()
-	var seed map[string]interface{}
+	seed := map[string]interface{}{}
 	for k, v := range unitDesc.Seed {
 		seed[k] = runtime.seederMap[v].Seed()
 	}

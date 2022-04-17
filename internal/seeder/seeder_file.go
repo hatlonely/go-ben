@@ -7,7 +7,6 @@ import (
 	"os"
 
 	jsoniter "github.com/json-iterator/go"
-
 	"github.com/pkg/errors"
 )
 
@@ -26,11 +25,8 @@ func NewFileSeederWithOptions(options *FileSeederOptions) (*FileSeeder, error) {
 	reader := bufio.NewReader(fp)
 	for {
 		buf, err := reader.ReadBytes('\n')
-		if err != nil {
-			if err != io.EOF {
-				return nil, errors.Wrapf(err, "reader.ReadString failed")
-			}
-			break
+		if err != nil && err != io.EOF {
+			return nil, errors.Wrapf(err, "reader.ReadString failed")
 		}
 		if len(buf) == 1 {
 			continue
@@ -44,6 +40,10 @@ func NewFileSeederWithOptions(options *FileSeederOptions) (*FileSeeder, error) {
 		}
 
 		seeds = append(seeds, v)
+
+		if err != nil {
+			break
+		}
 	}
 
 	return &FileSeeder{
