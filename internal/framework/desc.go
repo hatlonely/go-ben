@@ -46,8 +46,8 @@ type CtxDesc struct {
 	Name        string
 	Description string
 	Var         interface{}
-	Ctx         map[string]refx.Options
-	Seed        map[string]refx.Options
+	Ctx         map[string]refx.TypeOptions
+	Seed        map[string]refx.TypeOptions
 	Plan        []PlanDesc
 }
 
