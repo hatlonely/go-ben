@@ -27,7 +27,7 @@ type UnitStat struct {
 	UnitStageMilliseconds int64
 	UnitStageTimes        int
 	MaxStepSize           int
-	Steps                 []*StepStat
+	Steps                 []*StepStat `json:"-"`
 	QuantileKeys          []string
 	Quantile              map[string]time.Duration
 
