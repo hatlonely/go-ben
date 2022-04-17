@@ -17,7 +17,7 @@ type ShellClientOptions struct {
 	Envs    map[string]string `yaml:"envs,omitempty"`
 }
 
-func NewShellClient(options *ShellClientOptions) (*ShellClient, error) {
+func NewShellClientWithOptions(options *ShellClientOptions) (*ShellClient, error) {
 	var envs []string
 	for k, v := range options.Envs {
 		envs = append(envs, fmt.Sprintf(`%s=%s`, k, strings.TrimSpace(v)))

@@ -8,7 +8,7 @@ import (
 
 func TestNewShellClient(t *testing.T) {
 	Convey("TestNewShellClient", t, func() {
-		client, err := NewShellClient(&ShellClientOptions{
+		client, err := NewShellClientWithOptions(&ShellClientOptions{
 			Shebang: "bash",
 			Args:    []string{"-c"},
 			Envs: map[string]string{
