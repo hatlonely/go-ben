@@ -13,8 +13,8 @@ import (
 )
 
 type ShellClientOptions struct {
-	Shebang string            `yaml:"shebang,omitempty"`
-	Args    []string          `yaml:"args,omitempty"`
+	Shebang string            `yaml:"shebang,omitempty" dft:"bash"`
+	Args    []string          `yaml:"args,omitempty" dft:"['-c']"`
 	Envs    map[string]string `yaml:"envs,omitempty"`
 }
 
