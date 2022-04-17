@@ -20,6 +20,5 @@ func NewClientWithOptions(options *refx.TypeOptions, opts ...refx.Option) (Clien
 }
 
 type Client interface {
-	Name() string
-	Do(req interface{}) (interface{}, error)
+	Do(req interface{}) (string, interface{}, error)
 }

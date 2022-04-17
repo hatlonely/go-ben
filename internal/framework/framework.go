@@ -187,9 +187,8 @@ func (f *Framework) RunStep(runtime *Runtime, unitDesc *UnitDesc) *stat.StepStat
 	for _, step := range unitDesc.Step {
 		req := step.Req
 		client := runtime.clientMap[step.Ctx]
-		name := client.Name()
 		now := time.Now()
-		res, err := client.Do(req)
+		name, res, err := client.Do(req)
 		if err != nil {
 			stepStat.AddErrStat(name, err)
 			return stepStat

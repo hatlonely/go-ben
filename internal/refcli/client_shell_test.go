@@ -26,9 +26,9 @@ func TestNewShellClient(t *testing.T) {
 			Decoder: "text",
 		}
 
-		So(client.Name(req), ShouldEqual, "echo")
+		So(client.name(req), ShouldEqual, "echo")
 
-		res, err := client.Do(req)
+		res, err := client.do(req)
 		So(err, ShouldBeNil)
 		So(res, ShouldResemble, &ShellClientRes{
 			Stdout:   "hello world",

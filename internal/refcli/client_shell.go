@@ -8,6 +8,7 @@ import (
 	"strings"
 	"syscall"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
 
@@ -48,11 +49,38 @@ type ShellClientRes struct {
 	ExitCode int    `json:"ExitCode,omitempty"`
 }
 
-func (c *ShellClient) Name(req *ShellClientReq) string {
+func (c *ShellClient) Do(reqv interface{}) (string, interface{}, error) {
+	buf, err := jsoniter.Marshal(reqv)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "jsoniter.Marshal failed")
+	}
+	var req ShellClientReq
+	if err := jsoniter.Unmarshal(buf, &req); err != nil {
+		return "", nil, errors.Wrap(err, "jsoniter.Unmarshal failed")
+	}
+
+	res, err := c.do(&req)
+	if err != nil {
+		return "", nil, errors.WithMessage(err, "c.do failed")
+	}
+
+	buf, err = jsoniter.Marshal(res)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "jsoniter.Marshal failed")
+	}
+	var resv interface{}
+	if err := jsoniter.Unmarshal(buf, &resv); err != nil {
+		return "", nil, errors.Wrap(err, "jsoniter.Unmarshal failed")
+	}
+
+	return strings.Fields(req.Command)[0], resv, nil
+}
+
+func (c *ShellClient) name(req *ShellClientReq) string {
 	return strings.Fields(req.Command)[0]
 }
 
-func (c *ShellClient) Do(req *ShellClientReq) (*ShellClientRes, error) {
+func (c *ShellClient) do(req *ShellClientReq) (*ShellClientRes, error) {
 	var envs []string
 	for k, v := range req.Envs {
 		envs = append(envs, fmt.Sprintf(`%s=%s`, k, strings.TrimSpace(v)))
