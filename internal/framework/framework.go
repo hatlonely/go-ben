@@ -3,9 +3,12 @@ package framework
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/hatlonely/go-kit/strx"
 
 	"github.com/hatlonely/go-ben/internal/util"
 
@@ -45,12 +48,14 @@ type Runtime struct {
 	variables interface{}
 }
 
-func (f *Framework) Run() *stat.TestStat {
-	return f.RunTest(f.options.TestDirectory, &Runtime{
+func (f *Framework) Run() bool {
+	testStat := f.RunTest(f.options.TestDirectory, &Runtime{
 		clientMap: nil,
 		seederMap: nil,
 		variables: nil,
 	})
+	fmt.Println(strx.JsonMarshalIndent(testStat))
+	return !testStat.IsErr
 }
 
 const (
