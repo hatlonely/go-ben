@@ -128,7 +128,7 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 			var items [][]interface{}
 			for _, stage := range unit.UnitStages {
 				items = append(items, []interface{}{
-					stage.Time.Format(time.RFC3339Nano), math.Round(stage.QPS*10000) / 100,
+					stage.Time.Format(time.RFC3339Nano), math.Round(stage.Rate*10000) / 100,
 				})
 			}
 			return items
