@@ -33,23 +33,21 @@ type HtmlReporterOptions struct {
 func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, error) {
 	i18n_ := i18n.NewI18n(options.Lang, &options.I18n)
 
-	funcs := template.FuncMap{
-		"RenderTest": func(test *stat.TestStat, name string) string {
-			return "hello world"
-		},
-	}
-
-	//reportTpl, err := template.New("").Funcs(funcs).Parse(reportTplStr)
-	//if err != nil {
-	//	return nil, errors.Wrapf(err, "template.Parse failed")
-	//}
-	reportTpl := template.Must(template.New("").Funcs(funcs).Parse(reportTplStr))
-
 	reporter := &HtmlReporter{
-		options:   options,
-		i18n:      i18n_,
-		reportTpl: reportTpl,
+		options: options,
+		i18n:    i18n_,
 	}
+
+	funcs := template.FuncMap{
+		"RenderTest":      reporter.RenderTest,
+		"RenderPlan":      reporter.RenderPlan,
+		"RenderUnitGroup": reporter.RenderUnitGroup,
+	}
+
+	reporter.reportTpl = template.Must(template.New("").Funcs(funcs).Parse(reportTplStr))
+	reporter.testTpl = template.Must(template.New("").Funcs(funcs).Parse(testTplStr))
+	reporter.planTpl = template.Must(template.New("").Funcs(funcs).Parse(planTplStr))
+	reporter.unitGroupTpl = template.Must(template.New("").Funcs(funcs).Parse(unitGroupTplStr))
 
 	return reporter, nil
 }
@@ -132,6 +130,343 @@ var reportTplStr = `<!DOCTYPE html>
 `
 
 var testTplStr = `
+<div class="col-md-12" id={{ .Name }}>
+    {% if test.is_err %}
+    <div class="card my-{{ customize.padding.y }} border-danger">
+        <h5 class="card-header text-white bg-danger">{{ i18n.title.test }} {{ test.name }} {{ i18n.status.fail }}</h5>
+    {% else %}
+    <div class="card my-{{ customize.padding.y }} border-success">
+        <h5 class="card-header text-white bg-success">{{ i18n.title.test }} {{ test.name }} {{ i18n.status.succ }}</h5>
+    {% endif %}
+
+        {# render err #}
+        {% if test.is_err %}
+        <div class="card-header text-white bg-danger"><span class="fw-bolder">{{ i18n.test.err }}</span></div>
+        <div class="card-body"><pre>{{ test.err }}</pre></div>
+        {% endif %}
+
+        {# render description #}
+        {% if test.description %}
+        <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ i18n.testHeader.description }}</span></div>
+        <div class="card-body">{{ markdown(test.description) }}</div>
+        {% endif %}
+
+        {# render plan #}
+        {% if test.plans %}
+        <div class="card-header justify-content-between d-flex">
+            <span class="fw-bolder">{{ i18n.title.plan }}</span>
+        </div>
+        <ul class="list-group list-group-flush" id="{{ .Name }}-plan">
+            {% for plan in test.plans %}
+            <li class="list-group-item px-{{ customize.padding.x }} py-{{ customize.padding.y }} plan">
+                {{ render_plan(plan, '{}-plan-{}'.format(name, loop.index0)) }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+`
+
+var planTplStr = `
+<a class="card-title btn d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#{{ .Name }}" role="button" aria-expanded="false" aria-controls="{{ .Name }}">
+    {{ plan.name }}
+</a>
+<div class="card collapse show" id="{{ .Name }}">
+    {% if plan.is_err %}
+    <div class="card border-danger">
+    {% else %}
+    <div class="card border-success">
+    {% endif %}
+    
+        {# Description #}
+        {% if plan.description %}
+        <div class="card-header"><span class="fw-bolder">{{ i18n.title.description }}</span></div>
+        <div class="card-body">{{ markdown(plan.description) }}</div>
+        {% endif %}
+    
+        {# Command #}
+        {% if plan.command %}
+        <div class="card-header"><span class="fw-bolder">{{ i18n.title.command }}</span></div>
+        <div class="card-body">
+            <div class="float-end">
+                <button type="button" class="btn btn-sm py-0" onclick="copyToClipboard('{{ .Name }}-command')"
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="{{ i18n.toolTips.copy }}">
+                    <i class="bi-clipboard"></i>
+                </button>
+            </div>
+            <span id="{{ .Name }}-command">{{ plan.command }}</span>
+        </div>
+        {% endif %}
+    
+        {# UnitGroup #}
+        {% if plan.unit_groups %}
+        <ul class="list-group list-group-flush">
+            {% for unit_group in plan.unit_groups %}
+            <li class="list-group-item px-{{ customize.padding.x }} py-{{ customize.padding.y }}">
+                {{ render_unit_group(unit_group, '{}-group-{}'.format(name, loop.index0)) }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+`
+
+var unitGroupTplStr = `
+<div class="card" id="{{ .Name }}">
+    {% if group.is_err %}<div class="card border-danger">{% else %}<div class="card border-success">{% endif %}
+
+    <div class="card-header justify-content-between d-flex">
+        <span class="fw-bolder">{{ i18n.title.summary }} No.{{ group.idx + 1 }}</span>
+        <span>
+            {% if group.seconds %}
+            <span class="badge bg-success rounded-pill">{{ group.seconds }}s</span>
+            {% endif %}
+            {% if group.times %}
+            <span class="badge bg-success rounded-pill">{{ group.times }}</span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr class="text-center">
+                    <th>{{ i18n.title.unit }}</th>
+                    <th>{{ i18n.title.parallel }}</th>
+                    <th>{{ i18n.title.total }}</th>
+                    <th>{{ i18n.title.rate }}</th>
+                    <th>{{ i18n.title.qps }}</th>
+                    <th>{{ i18n.title.resTime }}</th>
+                    {% for q in group.quantile %}
+                    <th>{{ i18n.title.quantileShort }}{{ q }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for unit in group.units %}
+                <tr class="text-center">
+                    <td>{{ unit.name }}</td>
+                    <td>{{ unit.parallel }}</td>
+                    <td>{{ unit.total }}</td>
+                    <td>{{ int(unit.rate * 10000) / 100 }}%</td>
+                    <td>{{ int(unit.qps) }}</td>
+                    <td>{{ format_timedelta(unit.res_time) }}</td>
+                    {% for q in group.quantile %}
+                    <td>{{ format_timedelta(unit.quantile[q]) }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Code #}
+    <div class="card-body d-flex justify-content-center">
+        <div  class="col-md-12" id="{{ '{}-unit-code'.format(name) }}" style="height: 300px;"></div>
+        <script>
+            echarts.init(document.getElementById("{{ '{}-unit-code'.format(name) }}")).setOption({
+              title: {
+                text: "{{ i18n.title.code }}",
+                left: "center",
+              },
+              textStyle: {
+                fontFamily: "{{ customize.font.echarts }}",
+              },
+              tooltip: {
+                trigger: "item"
+              },
+              toolbox: {
+                feature: {
+                  saveAsImage: {
+                    title: "{{ i18n.tooltip.save }}"
+                  }
+                }
+              },
+              series: [
+                {% for unit in group.units %}
+                {
+                  name: "{{ unit.name }}",
+                  type: "pie",
+                  radius: ['{{ (70 / loop.length) * loop.index0 + 15 }}%', '{{ (70 / loop.length) * loop.index + 10 }}%'],
+                  avoidLabelOverlap: false,
+                  label: {
+                    show: false,
+                    position: 'center'
+                  },
+                  emphasis: {
+                    label: {
+                      show: true,
+                      fontSize: '20',
+                      fontWeight: 'bold'
+                    }
+                  },
+                  labelLine: {
+                    show: false
+                  },
+                  data: {{ json.dumps(dict_to_items(unit.code)) }}
+                },
+                {% endfor %}
+              ]
+            });
+        </script>
+    </div>
+
+    {# QPS #}
+    <div class="card-body d-flex justify-content-center">
+        <div class="col-md-12" id="{{ '{}-unit-qps'.format(name) }}" style="height: 300px;"></div>
+        <script>
+            echarts.init(document.getElementById("{{ '{}-unit-qps'.format(name) }}")).setOption({
+              title: {
+                text: "{{ i18n.title.qps }}",
+                left: "center",
+              },
+              textStyle: {
+                fontFamily: "{{ customize.font.echarts }}",
+              },
+              tooltip: {
+                trigger: 'axis',
+                show: true,
+                axisPointer: {
+                    type: "cross"
+                }
+              },
+              toolbox: {
+                feature: {
+                  saveAsImage: {
+                    title: "{{ i18n.tooltip.save }}"
+                  }
+                }
+              },
+              xAxis: {
+                type: "time",
+              },
+              yAxis: {
+                type: "value",
+              },
+              series: [
+                {% for unit in group.units %}
+                {
+                  name: "{{ unit.name }}",
+                  type: "line",
+                  smooth: true,
+                  symbol: "none",
+                  areaStyle: {},
+                  data: {{ json.dumps(unit_stage_serial(unit, "qps")) }}
+                },
+                {% endfor %}
+              ]
+            });
+        </script>
+    </div>
+
+    {# Rate #}
+    <div class="card-body d-flex justify-content-center">
+        <div class="col-md-12" id="{{ '{}-unit-rate'.format(name) }}" style="height: 300px;"></div>
+        <script>
+            echarts.init(document.getElementById("{{ '{}-unit-rate'.format(name) }}")).setOption({
+              title: {
+                text: "{{ i18n.title.rate }}",
+                left: "center",
+              },
+              textStyle: {
+                fontFamily: "{{ customize.font.echarts }}",
+              },
+              tooltip: {
+                trigger: 'axis',
+                show: true,
+                axisPointer: {
+                    type: "cross"
+                }
+              },
+              toolbox: {
+                feature: {
+                  saveAsImage: {
+                    title: "{{ i18n.tooltip.save }}"
+                  }
+                }
+              },
+              xAxis: {
+                type: "time",
+                boundaryGap: false
+              },
+              yAxis: {
+                type: "value",
+                axisLabel: {
+                  formatter: yAxisLabelFormatter["percent"],
+                }
+              },
+              series: [
+                {% for unit in group.units %}
+                {
+                  name: "{{ unit.name }}",
+                  type: "line",
+                  smooth: true,
+                  symbol: "none",
+                  areaStyle: {},
+                  data: {{ json.dumps(unit_stage_serial(unit, "rate", "percent")) }}
+                },
+                {% endfor %}
+              ]
+            });
+        </script>
+    </div>
+    
+    {# Monitor #}
+    {% for mname, monitor in group.monitor.items() %}
+    <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ i18n.title.monitor }}-{{ mname }}</span></div>
+    {% for metric_name, stat in monitor["stat"].items() %}
+    <div class="card-body d-flex justify-content-center">
+        <div class="col-md-12" id="{{ '{}-monitor-{}-{}'.format(name, mname, metric_name) }}" style="height: 300px;"></div>
+        <script>
+            echarts.init(document.getElementById("{{ '{}-monitor-{}-{}'.format(name, mname, metric_name) }}")).setOption({
+              title: {
+                text: "{{ metric_name }}",
+                left: "center",
+              },
+              textStyle: {
+                fontFamily: "{{ customize.font.echarts }}",
+              },
+              tooltip: {
+                trigger: 'axis',
+                show: true,
+                axisPointer: {
+                    type: "cross"
+                }
+              },
+              toolbox: {
+                feature: {
+                  saveAsImage: {
+                    title: "{{ i18n.tooltip.save }}"
+                  }
+                }
+              },
+              xAxis: {
+                type: "time",
+                boundaryGap: false
+              },
+              yAxis: {
+                type: "value",
+                axisLabel: {
+                  formatter: yAxisLabelFormatter["{{ monitor["unit"][metric_name] }}"],
+                }
+              },
+              series: [
+                {
+                  name: "{{ metric_name }}",
+                  type: "line",
+                  smooth: true,
+                  symbol: "none",
+                  areaStyle: {},
+                  data: {{ json.dumps(monitor_serial(stat, "value")) }}
+                },
+              ]
+            });
+        </script>
+    </div>
+    {% endfor %}
+    {% endfor %}
+</div>
 `
 
 type HtmlReporter struct {
@@ -149,6 +484,48 @@ func (r *HtmlReporter) Report(test *stat.TestStat) string {
 	var buf bytes.Buffer
 	if err := r.reportTpl.Execute(&buf, map[string]interface{}{
 		"Test":      test,
+		"Customize": r.options,
+		"I18n":      r.i18n,
+	}); err != nil {
+		return fmt.Sprintf("%+v", errors.Wrap(err, "r.reportTpl.Execute failed"))
+	}
+
+	return buf.String()
+}
+
+func (r *HtmlReporter) RenderTest(test *stat.TestStat, name string) string {
+	var buf bytes.Buffer
+	if err := r.reportTpl.Execute(&buf, map[string]interface{}{
+		"Name":      name,
+		"Test":      test,
+		"Customize": r.options,
+		"I18n":      r.i18n,
+	}); err != nil {
+		return fmt.Sprintf("%+v", errors.Wrap(err, "r.reportTpl.Execute failed"))
+	}
+
+	return buf.String()
+}
+
+func (r *HtmlReporter) RenderPlan(plan *stat.PlanStat, name string) string {
+	var buf bytes.Buffer
+	if err := r.planTpl.Execute(&buf, map[string]interface{}{
+		"Name":      name,
+		"Plan":      plan,
+		"Customize": r.options,
+		"I18n":      r.i18n,
+	}); err != nil {
+		return fmt.Sprintf("%+v", errors.Wrap(err, "r.reportTpl.Execute failed"))
+	}
+
+	return buf.String()
+}
+
+func (r *HtmlReporter) RenderUnitGroup(unitGroup *stat.UnitGroupStat, name string) string {
+	var buf bytes.Buffer
+	if err := r.planTpl.Execute(&buf, map[string]interface{}{
+		"Name":      name,
+		"UnitGroup": unitGroupTplStr,
 		"Customize": r.options,
 		"I18n":      r.i18n,
 	}); err != nil {
