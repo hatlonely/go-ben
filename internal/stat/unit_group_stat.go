@@ -9,6 +9,8 @@ type UnitGroupStat struct {
 	Units    []*UnitStat
 	Quantile []string
 	Monitor  map[string]*MonitorStat
+	IsErr    bool
+	Err      string
 }
 
 func NewUnitGroupStat(idx int, seconds int, times int, quantile []float64) *UnitGroupStat {

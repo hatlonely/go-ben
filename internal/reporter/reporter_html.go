@@ -3,8 +3,8 @@ package reporter
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"math"
+	"text/template"
 	"time"
 
 	"github.com/hatlonely/go-kit/strx"
@@ -37,6 +37,28 @@ type HtmlReporterOptions struct {
 }
 
 func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, error) {
+	if len(options.Font.Style) == 0 {
+		options.Font.Style = `<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+`
+	}
+	if len(options.Font.Body) == 0 {
+		options.Font.Body = "'Roboto Condensed', sans-serif !important"
+	}
+	if len(options.Font.Code) == 0 {
+		options.Font.Code = "'JetBrains Mono', monospace !important"
+	}
+	if len(options.Font.Echarts) == 0 {
+		options.Font.Echarts = "Roboto Condensed"
+	}
+	if options.Padding.X == 0 {
+		options.Padding.X = 2
+	}
+	if options.Padding.Y == 0 {
+		options.Padding.Y = 2
+	}
+
 	i18n_ := i18n.NewI18n(options.Lang, &options.I18n)
 
 	reporter := &HtmlReporter{
@@ -222,8 +244,8 @@ var testTplStr = `
         </div>
         <ul class="list-group list-group-flush" id="{{ .Name }}-plan">
             {{ range $idx, $plan := .Test.Plans }}
-            <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }} plan">
-                {{ RenderPlan $plan (printf "%s-plan-%d" .Name $idx) }}
+            <li class="list-group-item px-{{ $.Customize.Padding.X }} py-{{ $.Customize.Padding.Y }} plan">
+                {{ RenderPlan $plan (printf "%s-plan-%d" $.Name $idx) }}
             </li>
             {{ end }}
         </ul>
@@ -264,8 +286,8 @@ var planTplStr = `
         {{ if .Plan.UnitGroups }}
         <ul class="list-group list-group-flush">
             {{ range $idx, $unitGroup := .Plan.UnitGroups }}
-            <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }}">
-                {{ RenderUnitGroup $unitGroup (printf "%s-group-%d" .Name $idx) }}
+            <li class="list-group-item px-{{ $.Customize.Padding.X }} py-{{ $.Customize.Padding.Y }}">
+                {{ RenderUnitGroup $unitGroup (printf "%s-group-%d" $.Name $idx) }}
             </li>
             {{ end }}
         </ul>
@@ -582,7 +604,7 @@ func (r *HtmlReporter) RenderUnitGroup(unitGroup *stat.UnitGroupStat, name strin
 	var buf bytes.Buffer
 	if err := r.unitGroupTpl.Execute(&buf, map[string]interface{}{
 		"Name":      name,
-		"UnitGroup": unitGroupTplStr,
+		"UnitGroup": unitGroup,
 		"Customize": r.options,
 		"I18n":      r.i18n,
 	}); err != nil {
