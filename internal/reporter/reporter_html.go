@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"time"
 
+	"github.com/hatlonely/go-kit/strx"
+
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/hatlonely/go-ben/internal/i18n"
@@ -61,6 +63,23 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 		},
 		"FormatDuration": func(v time.Duration) string {
 			return v.String()
+		},
+		"EchartCodeRadius1": func(idx int, len int) int {
+			return (70/len)*idx + 15
+		},
+		"EchartCodeRadius2": func(idx int, len int) int {
+			return (70/len)*(idx+1) + 10
+		},
+		"JsonMarshal": strx.JsonMarshal,
+		"DictToItems": func(d map[string]int) interface{} {
+			var items []map[string]interface{}
+			for k, v := range d {
+				items = append(items, map[string]interface{}{
+					"name":  k,
+					"value": v,
+				})
+			}
+			return items
 		},
 	}
 
@@ -297,11 +316,11 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {{ range $unit := .UnitGroup.Units }}
+                {{ range $idx, $unit := .UnitGroup.Units }}
                 {
                   name: "{{ $unit.Name }}",
                   type: "pie",
-                  radius: ['{{ (70 / loop.length) * loop.index0 + 15 }}%', '{{ (70 / loop.length) * loop.index + 10 }}%'],
+                  radius: ['{{ EchartCodeRadius1 $idx (len .UnitGroup.Units) }}%', '{{ EchartCodeRadius1 $idx (len .UnitGroup.Units) }}%'],
                   avoidLabelOverlap: false,
                   label: {
                     show: false,
@@ -317,7 +336,7 @@ var unitGroupTplStr = `
                   labelLine: {
                     show: false
                   },
-                  data: {{ json.dumps(dict_to_items(unit.code)) }}
+                  data: {{ JsonMarshal (DictToItems $unit.code) }}
                 },
                 {{ end }}
               ]
@@ -357,14 +376,14 @@ var unitGroupTplStr = `
                 type: "value",
               },
               series: [
-                {{ for unit in .UnitGroup.Units }}
+                {{ range $unit := .UnitGroup.Units }}
                 {
-                  name: "{{ unit.name }}",
+                  name: "{{ $unit.Name }}",
                   type: "line",
                   smooth: true,
                   symbol: "none",
                   areaStyle: {},
-                  data: {{ json.dumps(unit_stage_serial(unit, "qps")) }}
+                  data: {{ JsonMarshal (unit_stage_serial(unit, "qps")) }}
                 },
                 {{ end }}
               ]
