@@ -75,8 +75,8 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 			parser := parser.NewWithExtensions(extensions)
 			return string(markdown.ToHTML([]byte(text), parser, nil))
 		},
-		"Add": func(i int) int {
-			return i + 1
+		"Add": func(i, j int) int {
+			return i + j
 		},
 		"Percent": func(v float64) string {
 			return fmt.Sprintf("%.2f%%", v*100)
@@ -322,7 +322,7 @@ var unitGroupTplStr = `
                     <th>{{ .I18n.Title.QPS }}</th>
                     <th>{{ .I18n.Title.ResTime }}</th>
                     {{ range $q := .UnitGroup.Quantile }}
-                    <th>{{ .I18n.Title.QuantileShort }}{{ $q }}</th>
+                    <th>{{ $.I18n.Title.QuantileShort }}{{ $q }}</th>
                     {{ end }}
                 </tr>
             </thead>
@@ -332,10 +332,10 @@ var unitGroupTplStr = `
                     <td>{{ $unit.Name }}</td>
                     <td>{{ $unit.Parallel }}</td>
                     <td>{{ $unit.Total }}</td>
-                    <td>{{ Percent $unit.rate }}</td>
+                    <td>{{ Percent $unit.Rate }}</td>
                     <td>{{ FormatFloat $unit.QPS }}</td>
                     <td>{{ FormatDuration $unit.ResTime }}</td>
-                    {{ range $q := .UnitGroup.Quantile }}
+                    {{ range $q := $.UnitGroup.Quantile }}
                     <td>{{ FormatDuration (index $unit.Quantile $q) }}</td>
                     {{ end }}
                 </tr>
@@ -366,11 +366,11 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {{ range $idx, $unit := .UnitGroup.Units }}
+                {{ range $idx, $unit := $.UnitGroup.Units }}
                 {
                   name: "{{ $unit.Name }}",
                   type: "pie",
-                  radius: ['{{ EchartCodeRadius1 $idx (len .UnitGroup.Units) }}%', '{{ EchartCodeRadius1 $idx (len .UnitGroup.Units) }}%'],
+                  radius: ['{{ EchartCodeRadius1 $idx (len $.UnitGroup.Units) }}%', '{{ EchartCodeRadius1 $idx (len $.UnitGroup.Units) }}%'],
                   avoidLabelOverlap: false,
                   label: {
                     show: false,
@@ -386,7 +386,7 @@ var unitGroupTplStr = `
                   labelLine: {
                     show: false
                   },
-                  data: {{ JsonMarshal (DictToItems $unit.code) }}
+                  data: {{ JsonMarshal (DictToItems $unit.Code) }}
                 },
                 {{ end }}
               ]
@@ -479,7 +479,7 @@ var unitGroupTplStr = `
               series: [
                 {{ range $unit := .UnitGroup.Units }}
                 {
-                  name: "{{ $unit.name }}",
+                  name: "{{ $unit.Name }}",
                   type: "line",
                   smooth: true,
                   symbol: "none",
