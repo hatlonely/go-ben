@@ -177,15 +177,15 @@ var planTplStr = `
     {{ .Plan.Name }}
 </a>
 <div class="card collapse show" id="{{ .Name }}">
-    {{ if plan.is_err }}
+    {{ if .Plan.IsErr }}
     <div class="card border-danger">
     {{ else }}
     <div class="card border-success">
     {{ end }}
     
         {{ if .Plan.Description }}
-        <div class="card-header"><span class="fw-bolder">{{ I18n.Title.Description }}</span></div>
-        <div class="card-body">{{ markdown(.Plan.Description) }}</div>
+        <div class="card-header"><span class="fw-bolder">{{ .I18n.Title.Description }}</span></div>
+        <div class="card-body">{{ Markdown .Plan.Description }}</div>
         {{ end }}
     
         {{ if .Plan.Command }}
@@ -193,7 +193,7 @@ var planTplStr = `
         <div class="card-body">
             <div class="float-end">
                 <button type="button" class="btn btn-sm py-0" onclick="copyToClipboard('{{ .Name }}-command')"
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="{{ i18n.toolTips.copy }}">
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="{{ .I18n.Tooltip.Copy }}">
                     <i class="bi-clipboard"></i>
                 </button>
             </div>
@@ -201,11 +201,11 @@ var planTplStr = `
         </div>
         {{ end }}
     
-        {{ if plan.unit_groups }}
+        {{ if .Plan.UnitGroups }}
         <ul class="list-group list-group-flush">
-            {{ for UnitGroup in .Plan.UnitGroups }}
+            {{ range $idx, $unitGroup := .Plan.UnitGroups }}
             <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }}">
-                {{ RenderUnitGroup .UnitGroup, '{}-group-{}'.format(name, loop.index0) }}
+                {{ RenderUnitGroup $unitGroup (printf "%s-group-%d" .Name $idx) }}
             </li>
             {{ end }}
         </ul>
