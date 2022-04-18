@@ -15,4 +15,5 @@ require (
 require (
 	github.com/PaesslerAG/gval v1.1.0
 	github.com/generikvault/gvalstrings v0.0.0-20180926130504-471f38f0112a
+	github.com/gomarkdown/markdown v0.0.0-20220415004816-a770b0c4ff83
 )

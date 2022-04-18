@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"html/template"
 
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/parser"
 	"github.com/hatlonely/go-ben/internal/i18n"
 	"github.com/hatlonely/go-ben/internal/stat"
 	"github.com/pkg/errors"
@@ -42,6 +44,11 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 		"RenderTest":      reporter.RenderTest,
 		"RenderPlan":      reporter.RenderPlan,
 		"RenderUnitGroup": reporter.RenderUnitGroup,
+		"Markdown": func(text string) string {
+			extensions := parser.CommonExtensions | parser.AutoHeadingIDs
+			parser := parser.NewWithExtensions(extensions)
+			return string(markdown.ToHTML([]byte(text), parser, nil))
+		},
 	}
 
 	reporter.reportTpl = template.Must(template.New("").Funcs(funcs).Parse(reportTplStr))
@@ -148,7 +155,7 @@ var testTplStr = `
         {# render description #}
         {% if .Test.Description %}
         <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.TestHeader.Description }}</span></div>
-        <div class="card-body">{{ markdown(.Test.Description) }}</div>
+        <div class="card-body">{{ Markdown .Test.Description }}</div>
         {% endif %}
 
         {# render plan #}
@@ -159,7 +166,7 @@ var testTplStr = `
         <ul class="list-group list-group-flush" id="{{ .Name }}-plan">
             {% for plan in test.plans %}
             <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }} plan">
-                {{ RenderPlan(plan, '{}-plan-{}'.format(name, loop.index0)) }}
+                {{ RenderPlan .Plan '{}-plan-{}'.format(name, loop.index0) }}
             </li>
             {% endfor %}
         </ul>
@@ -202,9 +209,9 @@ var planTplStr = `
         {# UnitGroup #}
         {% if plan.unit_groups %}
         <ul class="list-group list-group-flush">
-            {% for unit_group in plan.unit_groups %}
+            {% for UnitGroup in .Plan.UnitGroups %}
             <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }}">
-                {{ RenderUnitGroup(unit_group, '{}-group-{}'.format(name, loop.index0)) }}
+                {{ RenderUnitGroup .UnitGroup, '{}-group-{}'.format(name, loop.index0) }}
             </li>
             {% endfor %}
         </ul>
@@ -215,16 +222,16 @@ var planTplStr = `
 
 var unitGroupTplStr = `
 <div class="card" id="{{ .Name }}">
-    {% if group.is_err %}<div class="card border-danger">{% else %}<div class="card border-success">{% endif %}
+    {% if .UnitGroup.IsErr %}<div class="card border-danger">{% else %}<div class="card border-success">{% endif %}
 
     <div class="card-header justify-content-between d-flex">
         <span class="fw-bolder">{{ .I18n.Title.Summary }} No.{{ group.idx + 1 }}</span>
         <span>
-            {% if .Group.Seconds %}
-            <span class="badge bg-success rounded-pill">{{ .Group.Seconds }}s</span>
+            {% if .UnitGroup.Seconds %}
+            <span class="badge bg-success rounded-pill">{{ .UnitGroup.Seconds }}s</span>
             {% endif %}
-            {% if .Group.Times %}
-            <span class="badge bg-success rounded-pill">{{ .Group.Times }}</span>
+            {% if .UnitGroup.Times %}
+            <span class="badge bg-success rounded-pill">{{ .UnitGroup.Times }}</span>
             {% endif %}
         </span>
     </div>
@@ -238,13 +245,13 @@ var unitGroupTplStr = `
                     <th>{{ .I18n.Title.Rate }}</th>
                     <th>{{ .I18n.Title.QPS }}</th>
                     <th>{{ .I18n.Title.ResTime }}</th>
-                    {% for q in .Group.Quantile %}
+                    {% for q in .UnitGroup.Quantile %}
                     <th>{{ .I18n.Title.QuantileShort }}{{ q }}</th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
-                {% for unit in .Group.Units %}
+                {% for unit in .UnitGroup.Units %}
                 <tr class="text-center">
                     <td>{{ unit.name }}</td>
                     <td>{{ unit.parallel }}</td>
@@ -252,7 +259,7 @@ var unitGroupTplStr = `
                     <td>{{ int(unit.rate * 10000) / 100 }}%</td>
                     <td>{{ int(unit.qps) }}</td>
                     <td>{{ format_timedelta(unit.res_time) }}</td>
-                    {% for q in .Group.Quantile %}
+                    {% for q in .UnitGroup.Quantile %}
                     <td>{{ format_timedelta(unit.quantile[q]) }}</td>
                     {% endfor %}
                 </tr>
@@ -284,7 +291,7 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {% for unit in .Group.Units %}
+                {% for unit in .UnitGroup.Units %}
                 {
                   name: "{{ unit.name }}",
                   type: "pie",
@@ -345,7 +352,7 @@ var unitGroupTplStr = `
                 type: "value",
               },
               series: [
-                {% for unit in .Group.Units %}
+                {% for unit in .UnitGroup.Units %}
                 {
                   name: "{{ unit.name }}",
                   type: "line",
@@ -397,7 +404,7 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {% for unit in .Group.Units %}
+                {% for unit in .UnitGroup.Units %}
                 {
                   name: "{{ unit.name }}",
                   type: "line",
