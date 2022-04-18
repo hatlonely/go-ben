@@ -86,7 +86,7 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 			var items [][]interface{}
 			for _, stage := range unit.UnitStages {
 				items = append(items, []interface{}{
-					stage.Time, math.Round(stage.QPS*100) / 100,
+					stage.Time.Format(time.RFC3339Nano), math.Round(stage.QPS*100) / 100,
 				})
 			}
 			return items
@@ -95,7 +95,16 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 			var items [][]interface{}
 			for _, stage := range unit.UnitStages {
 				items = append(items, []interface{}{
-					stage.Time, math.Round(stage.QPS*10000) / 100,
+					stage.Time.Format(time.RFC3339Nano), math.Round(stage.QPS*10000) / 100,
+				})
+			}
+			return items
+		},
+		"MonitorSerial": func(monitor *stat.MonitorStat, key string) [][]interface{} {
+			var items [][]interface{}
+			for _, measurement := range monitor.Stat[key] {
+				items = append(items, []interface{}{
+					measurement.Time.Format(time.RFC3339Nano), measurement.Value,
 				})
 			}
 			return items
@@ -506,7 +515,7 @@ var unitGroupTplStr = `
                   smooth: true,
                   symbol: "none",
                   areaStyle: {},
-                  data: {{ JsonMarshal (monitor_serial(stat, "value")) }}
+                  data: {{ JsonMarshal (MonitorSerial $stat $metricName) }}
                 },
               ]
             });
