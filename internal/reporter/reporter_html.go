@@ -83,8 +83,20 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 		"FormatFloat": func(v float64) string {
 			return fmt.Sprintf("%.2f", v)
 		},
-		"FormatDuration": func(v time.Duration) string {
-			return v.String()
+		"FormatDuration": func(d time.Duration) string {
+			if d.Seconds() == 0 {
+				return "0"
+			}
+			if d > time.Second {
+				return fmt.Sprintf("%.2fs", d.Seconds())
+			}
+			if d > time.Millisecond {
+				return fmt.Sprintf("%.2fms", float64(d.Microseconds())/1000.0)
+			}
+			if d > time.Second {
+				return fmt.Sprintf("%.2fus", float64(d.Nanoseconds())/1000.0)
+			}
+			return fmt.Sprintf("%dns", d.Nanoseconds())
 		},
 		"EchartCodeRadius1": func(idx int, len int) int {
 			return (70/len)*idx + 15
@@ -369,7 +381,7 @@ var unitGroupTplStr = `
                 {
                   name: "{{ $unit.Name }}",
                   type: "pie",
-                  radius: ['{{ EchartCodeRadius1 $idx (len $.UnitGroup.Units) }}%', '{{ EchartCodeRadius1 $idx (len $.UnitGroup.Units) }}%'],
+                  radius: ['{{ EchartCodeRadius1 $idx (len $.UnitGroup.Units) }}%', '{{ EchartCodeRadius2 $idx (len $.UnitGroup.Units) }}%'],
                   avoidLabelOverlap: false,
                   label: {
                     show: false,
