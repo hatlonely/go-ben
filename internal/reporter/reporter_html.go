@@ -138,39 +138,36 @@ var reportTplStr = `<!DOCTYPE html>
 
 var testTplStr = `
 <div class="col-md-12" id={{ .Name }}>
-    {% if test.is_err %}
+    {{ if .Test.IsErr }}
     <div class="card my-{{ .Customize.Padding.Y }} border-danger">
         <h5 class="card-header text-white bg-danger">{{ .I18n.Title.Test }} {{ .Test.Name }} {{ .I18n.Status.Fail }}</h5>
-    {% else %}
+    {{ else }}
     <div class="card my-{{ .Customize.Padding.Y }} border-success">
         <h5 class="card-header text-white bg-success">{{ .I18n.Title.Test }} {{ .Test.Name }} {{ .I18n.Status.Succ }}</h5>
-    {% endif %}
+    {{ end }}
 
-        {# render err #}
-        {% if test.is_err %}
+        {{ if .Test.IsErr }}
         <div class="card-header text-white bg-danger"><span class="fw-bolder">{{ .I18n.Test.Err }}</span></div>
         <div class="card-body"><pre>{{ .Test.Err }}</pre></div>
-        {% endif %}
+        {{ end }}
 
-        {# render description #}
-        {% if .Test.Description %}
+        {{ if .Test.Description }}
         <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.TestHeader.Description }}</span></div>
         <div class="card-body">{{ Markdown .Test.Description }}</div>
-        {% endif %}
+        {{ end }}
 
-        {# render plan #}
-        {% if test.plans %}
+        {{ if .Test.Plans }}
         <div class="card-header justify-content-between d-flex">
             <span class="fw-bolder">{{ .I18n.Title.Plan }}</span>
         </div>
         <ul class="list-group list-group-flush" id="{{ .Name }}-plan">
-            {% for plan in test.plans %}
+            {{ range $idx, $plan := .Test.Plans }}
             <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }} plan">
-                {{ RenderPlan .Plan '{}-plan-{}'.format(name, loop.index0) }}
+                {{ RenderPlan $plan (printf "%s-plan-%d" .Name $idx) }}
             </li>
-            {% endfor %}
+            {{ end }}
         </ul>
-        {% endif %}
+        {{ end }}
     </div>
 </div>
 `
@@ -180,20 +177,18 @@ var planTplStr = `
     {{ .Plan.Name }}
 </a>
 <div class="card collapse show" id="{{ .Name }}">
-    {% if plan.is_err %}
+    {{ if plan.is_err }}
     <div class="card border-danger">
-    {% else %}
+    {{ else }}
     <div class="card border-success">
-    {% endif %}
+    {{ end }}
     
-        {# Description #}
-        {% if .Plan.Description %}
+        {{ if .Plan.Description }}
         <div class="card-header"><span class="fw-bolder">{{ I18n.Title.Description }}</span></div>
         <div class="card-body">{{ markdown(.Plan.Description) }}</div>
-        {% endif %}
+        {{ end }}
     
-        {# Command #}
-        {% if .Plan.Command %}
+        {{ if .Plan.Command }}
         <div class="card-header"><span class="fw-bolder">{{ .I18n.Title.Command }}</span></div>
         <div class="card-body">
             <div class="float-end">
@@ -204,35 +199,34 @@ var planTplStr = `
             </div>
             <span id="{{ .Name }}-command">{{ .Plan.Command }}</span>
         </div>
-        {% endif %}
+        {{ end }}
     
-        {# UnitGroup #}
-        {% if plan.unit_groups %}
+        {{ if plan.unit_groups }}
         <ul class="list-group list-group-flush">
-            {% for UnitGroup in .Plan.UnitGroups %}
+            {{ for UnitGroup in .Plan.UnitGroups }}
             <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }}">
                 {{ RenderUnitGroup .UnitGroup, '{}-group-{}'.format(name, loop.index0) }}
             </li>
-            {% endfor %}
+            {{ endfor }}
         </ul>
-        {% endif %}
+        {{ end }}
     </div>
 </div>
 `
 
 var unitGroupTplStr = `
 <div class="card" id="{{ .Name }}">
-    {% if .UnitGroup.IsErr %}<div class="card border-danger">{% else %}<div class="card border-success">{% endif %}
+    {{ if .UnitGroup.IsErr }}<div class="card border-danger">{{ else }}<div class="card border-success">{{ end }}
 
     <div class="card-header justify-content-between d-flex">
         <span class="fw-bolder">{{ .I18n.Title.Summary }} No.{{ group.idx + 1 }}</span>
         <span>
-            {% if .UnitGroup.Seconds %}
+            {{ if .UnitGroup.Seconds }}
             <span class="badge bg-success rounded-pill">{{ .UnitGroup.Seconds }}s</span>
-            {% endif %}
-            {% if .UnitGroup.Times %}
+            {{ end }}
+            {{ if .UnitGroup.Times }}
             <span class="badge bg-success rounded-pill">{{ .UnitGroup.Times }}</span>
-            {% endif %}
+            {{ end }}
         </span>
     </div>
     <div class="card-body">
@@ -245,13 +239,13 @@ var unitGroupTplStr = `
                     <th>{{ .I18n.Title.Rate }}</th>
                     <th>{{ .I18n.Title.QPS }}</th>
                     <th>{{ .I18n.Title.ResTime }}</th>
-                    {% for q in .UnitGroup.Quantile %}
+                    {{ for q in .UnitGroup.Quantile }}
                     <th>{{ .I18n.Title.QuantileShort }}{{ q }}</th>
-                    {% endfor %}
+                    {{ endfor }}
                 </tr>
             </thead>
             <tbody>
-                {% for unit in .UnitGroup.Units %}
+                {{ for unit in .UnitGroup.Units }}
                 <tr class="text-center">
                     <td>{{ unit.name }}</td>
                     <td>{{ unit.parallel }}</td>
@@ -259,16 +253,15 @@ var unitGroupTplStr = `
                     <td>{{ int(unit.rate * 10000) / 100 }}%</td>
                     <td>{{ int(unit.qps) }}</td>
                     <td>{{ format_timedelta(unit.res_time) }}</td>
-                    {% for q in .UnitGroup.Quantile %}
+                    {{ for q in .UnitGroup.Quantile }}
                     <td>{{ format_timedelta(unit.quantile[q]) }}</td>
-                    {% endfor %}
+                    {{ endfor }}
                 </tr>
-                {% endfor %}
+                {{ endfor }}
             </tbody>
         </table>
     </div>
 
-    {# Code #}
     <div class="card-body d-flex justify-content-center">
         <div  class="col-md-12" id="{{ '{}-unit-code'.format(name) }}" style="height: 300px;"></div>
         <script>
@@ -291,7 +284,7 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {% for unit in .UnitGroup.Units %}
+                {{ for unit in .UnitGroup.Units }}
                 {
                   name: "{{ unit.name }}",
                   type: "pie",
@@ -313,13 +306,12 @@ var unitGroupTplStr = `
                   },
                   data: {{ json.dumps(dict_to_items(unit.code)) }}
                 },
-                {% endfor %}
+                {{ endfor }}
               ]
             });
         </script>
     </div>
 
-    {# QPS #}
     <div class="card-body d-flex justify-content-center">
         <div class="col-md-12" id="{{ '{}-unit-qps'.format(name) }}" style="height: 300px;"></div>
         <script>
@@ -352,7 +344,7 @@ var unitGroupTplStr = `
                 type: "value",
               },
               series: [
-                {% for unit in .UnitGroup.Units %}
+                {{ for unit in .UnitGroup.Units }}
                 {
                   name: "{{ unit.name }}",
                   type: "line",
@@ -361,13 +353,12 @@ var unitGroupTplStr = `
                   areaStyle: {},
                   data: {{ json.dumps(unit_stage_serial(unit, "qps")) }}
                 },
-                {% endfor %}
+                {{ endfor }}
               ]
             });
         </script>
     </div>
 
-    {# Rate #}
     <div class="card-body d-flex justify-content-center">
         <div class="col-md-12" id="{{ '{}-unit-rate'.format(name) }}" style="height: 300px;"></div>
         <script>
@@ -404,7 +395,7 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {% for unit in .UnitGroup.Units %}
+                {{ for unit in .UnitGroup.Units }}
                 {
                   name: "{{ unit.name }}",
                   type: "line",
@@ -413,16 +404,15 @@ var unitGroupTplStr = `
                   areaStyle: {},
                   data: {{ json.dumps(unit_stage_serial(unit, "rate", "percent")) }}
                 },
-                {% endfor %}
+                {{ endfor }}
               ]
             });
         </script>
     </div>
     
-    {# Monitor #}
-    {% for mname, monitor in group.monitor.items() %}
+    {{ for mname, monitor in group.monitor.items() }}
     <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.Title.monitor }}-{{ mname }}</span></div>
-    {% for metric_name, stat in monitor["stat"].items() %}
+    {{ for metric_name, stat in monitor["stat"].items() }}
     <div class="card-body d-flex justify-content-center">
         <div class="col-md-12" id="{{ '{}-monitor-{}-{}'.format(name, mname, metric_name) }}" style="height: 300px;"></div>
         <script>
@@ -471,8 +461,8 @@ var unitGroupTplStr = `
             });
         </script>
     </div>
-    {% endfor %}
-    {% endfor %}
+    {{ endfor }}
+    {{ endfor }}
 </div>
 `
 
