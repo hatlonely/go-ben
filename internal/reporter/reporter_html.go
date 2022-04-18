@@ -132,34 +132,34 @@ var reportTplStr = `<!DOCTYPE html>
 var testTplStr = `
 <div class="col-md-12" id={{ .Name }}>
     {% if test.is_err %}
-    <div class="card my-{{ customize.padding.y }} border-danger">
-        <h5 class="card-header text-white bg-danger">{{ i18n.title.test }} {{ test.name }} {{ i18n.status.fail }}</h5>
+    <div class="card my-{{ .Customize.Padding.Y }} border-danger">
+        <h5 class="card-header text-white bg-danger">{{ .I18n.Title.Test }} {{ .Test.Name }} {{ .I18n.Status.Fail }}</h5>
     {% else %}
-    <div class="card my-{{ customize.padding.y }} border-success">
-        <h5 class="card-header text-white bg-success">{{ i18n.title.test }} {{ test.name }} {{ i18n.status.succ }}</h5>
+    <div class="card my-{{ .Customize.Padding.Y }} border-success">
+        <h5 class="card-header text-white bg-success">{{ .I18n.Title.Test }} {{ .Test.Name }} {{ .I18n.Status.Succ }}</h5>
     {% endif %}
 
         {# render err #}
         {% if test.is_err %}
-        <div class="card-header text-white bg-danger"><span class="fw-bolder">{{ i18n.test.err }}</span></div>
-        <div class="card-body"><pre>{{ test.err }}</pre></div>
+        <div class="card-header text-white bg-danger"><span class="fw-bolder">{{ .I18n.Test.Err }}</span></div>
+        <div class="card-body"><pre>{{ .Test.Err }}</pre></div>
         {% endif %}
 
         {# render description #}
-        {% if test.description %}
-        <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ i18n.testHeader.description }}</span></div>
-        <div class="card-body">{{ markdown(test.description) }}</div>
+        {% if .Test.Description %}
+        <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.TestHeader.Description }}</span></div>
+        <div class="card-body">{{ markdown(.Test.Description) }}</div>
         {% endif %}
 
         {# render plan #}
         {% if test.plans %}
         <div class="card-header justify-content-between d-flex">
-            <span class="fw-bolder">{{ i18n.title.plan }}</span>
+            <span class="fw-bolder">{{ .I18n.Title.Plan }}</span>
         </div>
         <ul class="list-group list-group-flush" id="{{ .Name }}-plan">
             {% for plan in test.plans %}
-            <li class="list-group-item px-{{ customize.padding.x }} py-{{ customize.padding.y }} plan">
-                {{ render_plan(plan, '{}-plan-{}'.format(name, loop.index0)) }}
+            <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }} plan">
+                {{ RenderPlan(plan, '{}-plan-{}'.format(name, loop.index0)) }}
             </li>
             {% endfor %}
         </ul>
@@ -170,7 +170,7 @@ var testTplStr = `
 
 var planTplStr = `
 <a class="card-title btn d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#{{ .Name }}" role="button" aria-expanded="false" aria-controls="{{ .Name }}">
-    {{ plan.name }}
+    {{ .Plan.Name }}
 </a>
 <div class="card collapse show" id="{{ .Name }}">
     {% if plan.is_err %}
@@ -180,14 +180,14 @@ var planTplStr = `
     {% endif %}
     
         {# Description #}
-        {% if plan.description %}
-        <div class="card-header"><span class="fw-bolder">{{ i18n.title.description }}</span></div>
-        <div class="card-body">{{ markdown(plan.description) }}</div>
+        {% if .Plan.Description %}
+        <div class="card-header"><span class="fw-bolder">{{ I18n.Title.Description }}</span></div>
+        <div class="card-body">{{ markdown(.Plan.Description) }}</div>
         {% endif %}
     
         {# Command #}
-        {% if plan.command %}
-        <div class="card-header"><span class="fw-bolder">{{ i18n.title.command }}</span></div>
+        {% if .Plan.Command %}
+        <div class="card-header"><span class="fw-bolder">{{ .I18n.Title.Command }}</span></div>
         <div class="card-body">
             <div class="float-end">
                 <button type="button" class="btn btn-sm py-0" onclick="copyToClipboard('{{ .Name }}-command')"
@@ -195,7 +195,7 @@ var planTplStr = `
                     <i class="bi-clipboard"></i>
                 </button>
             </div>
-            <span id="{{ .Name }}-command">{{ plan.command }}</span>
+            <span id="{{ .Name }}-command">{{ .Plan.Command }}</span>
         </div>
         {% endif %}
     
@@ -203,8 +203,8 @@ var planTplStr = `
         {% if plan.unit_groups %}
         <ul class="list-group list-group-flush">
             {% for unit_group in plan.unit_groups %}
-            <li class="list-group-item px-{{ customize.padding.x }} py-{{ customize.padding.y }}">
-                {{ render_unit_group(unit_group, '{}-group-{}'.format(name, loop.index0)) }}
+            <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }}">
+                {{ RenderUnitGroup(unit_group, '{}-group-{}'.format(name, loop.index0)) }}
             </li>
             {% endfor %}
         </ul>
@@ -218,13 +218,13 @@ var unitGroupTplStr = `
     {% if group.is_err %}<div class="card border-danger">{% else %}<div class="card border-success">{% endif %}
 
     <div class="card-header justify-content-between d-flex">
-        <span class="fw-bolder">{{ i18n.title.summary }} No.{{ group.idx + 1 }}</span>
+        <span class="fw-bolder">{{ .I18n.Title.Summary }} No.{{ group.idx + 1 }}</span>
         <span>
-            {% if group.seconds %}
-            <span class="badge bg-success rounded-pill">{{ group.seconds }}s</span>
+            {% if .Group.Seconds %}
+            <span class="badge bg-success rounded-pill">{{ .Group.Seconds }}s</span>
             {% endif %}
-            {% if group.times %}
-            <span class="badge bg-success rounded-pill">{{ group.times }}</span>
+            {% if .Group.Times %}
+            <span class="badge bg-success rounded-pill">{{ .Group.Times }}</span>
             {% endif %}
         </span>
     </div>
@@ -232,19 +232,19 @@ var unitGroupTplStr = `
         <table class="table table-striped">
             <thead>
                 <tr class="text-center">
-                    <th>{{ i18n.title.unit }}</th>
-                    <th>{{ i18n.title.parallel }}</th>
-                    <th>{{ i18n.title.total }}</th>
-                    <th>{{ i18n.title.rate }}</th>
-                    <th>{{ i18n.title.qps }}</th>
-                    <th>{{ i18n.title.resTime }}</th>
-                    {% for q in group.quantile %}
-                    <th>{{ i18n.title.quantileShort }}{{ q }}</th>
+                    <th>{{ .I18n.Title.Unit }}</th>
+                    <th>{{ .I18n.Title.Parallel }}</th>
+                    <th>{{ .I18n.Title.Total }}</th>
+                    <th>{{ .I18n.Title.Rate }}</th>
+                    <th>{{ .I18n.Title.QPS }}</th>
+                    <th>{{ .I18n.Title.ResTime }}</th>
+                    {% for q in .Group.Quantile %}
+                    <th>{{ .I18n.Title.QuantileShort }}{{ q }}</th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
-                {% for unit in group.units %}
+                {% for unit in .Group.Units %}
                 <tr class="text-center">
                     <td>{{ unit.name }}</td>
                     <td>{{ unit.parallel }}</td>
@@ -252,7 +252,7 @@ var unitGroupTplStr = `
                     <td>{{ int(unit.rate * 10000) / 100 }}%</td>
                     <td>{{ int(unit.qps) }}</td>
                     <td>{{ format_timedelta(unit.res_time) }}</td>
-                    {% for q in group.quantile %}
+                    {% for q in .Group.Quantile %}
                     <td>{{ format_timedelta(unit.quantile[q]) }}</td>
                     {% endfor %}
                 </tr>
@@ -267,11 +267,11 @@ var unitGroupTplStr = `
         <script>
             echarts.init(document.getElementById("{{ '{}-unit-code'.format(name) }}")).setOption({
               title: {
-                text: "{{ i18n.title.code }}",
+                text: "{{ .I18n.Title.Code }}",
                 left: "center",
               },
               textStyle: {
-                fontFamily: "{{ customize.font.echarts }}",
+                fontFamily: "{{ .Customize.Font.Echarts }}",
               },
               tooltip: {
                 trigger: "item"
@@ -279,12 +279,12 @@ var unitGroupTplStr = `
               toolbox: {
                 feature: {
                   saveAsImage: {
-                    title: "{{ i18n.tooltip.save }}"
+                    title: "{{ .I18n.Tooltip.Save }}"
                   }
                 }
               },
               series: [
-                {% for unit in group.units %}
+                {% for unit in .Group.Units %}
                 {
                   name: "{{ unit.name }}",
                   type: "pie",
@@ -318,11 +318,11 @@ var unitGroupTplStr = `
         <script>
             echarts.init(document.getElementById("{{ '{}-unit-qps'.format(name) }}")).setOption({
               title: {
-                text: "{{ i18n.title.qps }}",
+                text: "{{ .I18n.Title.QPS }}",
                 left: "center",
               },
               textStyle: {
-                fontFamily: "{{ customize.font.echarts }}",
+                fontFamily: "{{ .Customize.Font.Echarts }}",
               },
               tooltip: {
                 trigger: 'axis',
@@ -334,7 +334,7 @@ var unitGroupTplStr = `
               toolbox: {
                 feature: {
                   saveAsImage: {
-                    title: "{{ i18n.tooltip.save }}"
+                    title: "{{ .I18n.Tooltip.Save }}"
                   }
                 }
               },
@@ -345,7 +345,7 @@ var unitGroupTplStr = `
                 type: "value",
               },
               series: [
-                {% for unit in group.units %}
+                {% for unit in .Group.Units %}
                 {
                   name: "{{ unit.name }}",
                   type: "line",
@@ -366,11 +366,11 @@ var unitGroupTplStr = `
         <script>
             echarts.init(document.getElementById("{{ '{}-unit-rate'.format(name) }}")).setOption({
               title: {
-                text: "{{ i18n.title.rate }}",
+                text: "{{ .I18n.Title.Rate }}",
                 left: "center",
               },
               textStyle: {
-                fontFamily: "{{ customize.font.echarts }}",
+                fontFamily: "{{ .Customize.Font.Echarts }}",
               },
               tooltip: {
                 trigger: 'axis',
@@ -382,7 +382,7 @@ var unitGroupTplStr = `
               toolbox: {
                 feature: {
                   saveAsImage: {
-                    title: "{{ i18n.tooltip.save }}"
+                    title: "{{ .I18n.Tooltip.save }}"
                   }
                 }
               },
@@ -397,7 +397,7 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {% for unit in group.units %}
+                {% for unit in .Group.Units %}
                 {
                   name: "{{ unit.name }}",
                   type: "line",
@@ -414,7 +414,7 @@ var unitGroupTplStr = `
     
     {# Monitor #}
     {% for mname, monitor in group.monitor.items() %}
-    <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ i18n.title.monitor }}-{{ mname }}</span></div>
+    <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.Title.monitor }}-{{ mname }}</span></div>
     {% for metric_name, stat in monitor["stat"].items() %}
     <div class="card-body d-flex justify-content-center">
         <div class="col-md-12" id="{{ '{}-monitor-{}-{}'.format(name, mname, metric_name) }}" style="height: 300px;"></div>
@@ -425,7 +425,7 @@ var unitGroupTplStr = `
                 left: "center",
               },
               textStyle: {
-                fontFamily: "{{ customize.font.echarts }}",
+                fontFamily: "{{ .Customize.Font.Echarts }}",
               },
               tooltip: {
                 trigger: 'axis',
@@ -437,7 +437,7 @@ var unitGroupTplStr = `
               toolbox: {
                 feature: {
                   saveAsImage: {
-                    title: "{{ i18n.tooltip.save }}"
+                    title: "{{ .I18n.Tooltip.save }}"
                   }
                 }
               },
