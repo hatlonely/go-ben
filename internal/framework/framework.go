@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/hatlonely/go-ben/internal/refcli"
+	"github.com/hatlonely/go-ben/internal/reporter"
 	"github.com/hatlonely/go-ben/internal/seeder"
 	"github.com/hatlonely/go-ben/internal/stat"
 	"github.com/hatlonely/go-ben/internal/util"
+
+	"github.com/hatlonely/go-kit/config"
 	"github.com/hatlonely/go-kit/refx"
-	"github.com/hatlonely/go-kit/strx"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -22,24 +24,49 @@ type Options struct {
 	TestDirectory string `flag:"-t"`
 	PlanDirectory string `flag:"-p"`
 	Customize     string
-	Reporter      string
+	Reporter      string `flag:"default: Json"`
 	X             string
 	JsonStat      string
 	Hook          string
 	Lang          string
 }
 
+type Customize struct {
+	Reporter map[string]interface{}
+}
+
 func NewFrameworkWithOptions(options *Options) (*Framework, error) {
+	var customize Customize
+	if len(options.Customize) != 0 {
+		cfg, err := config.NewConfigWithSimpleFile(options.Customize, config.WithSimpleFileType("Yaml"))
+		if err != nil {
+			return nil, errors.WithMessage(err, "config.NewConfigWithSimpleFile failed")
+		}
+		if err := cfg.Unmarshal(&customize, refx.WithCamelName()); err != nil {
+			return nil, errors.WithMessage(err, "cfg.Unmarshal failed")
+		}
+	}
+
+	reporter, err := reporter.NewReporterWithOptions(&refx.TypeOptions{
+		Type:    options.Reporter,
+		Options: customize.Reporter[options.Reporter],
+	})
+	if err != nil {
+		return nil, errors.WithMessage(err, "reporter.NewReporterWithOptions failed")
+	}
+
 	return &Framework{
-		options: options,
-		id:      hex.EncodeToString(uuid.NewV4().Bytes()),
+		options:  options,
+		id:       hex.EncodeToString(uuid.NewV4().Bytes()),
+		reporter: reporter,
 	}, nil
 }
 
 type Framework struct {
 	options *Options
 
-	id string
+	id       string
+	reporter reporter.Reporter
 }
 
 type Runtime struct {
@@ -54,7 +81,7 @@ func (f *Framework) Run() bool {
 		seederMap: nil,
 		variables: nil,
 	})
-	fmt.Println(strx.JsonMarshalIndent(testStat))
+	fmt.Println(f.reporter.Report(testStat))
 	return !testStat.IsErr
 }
 

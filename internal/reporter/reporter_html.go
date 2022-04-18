@@ -30,6 +30,6 @@ type HtmlReporter struct {
 	options *HtmlReporterOptions
 }
 
-func (r *HtmlReporter) Report(test stat.TestStat) string {
+func (r *HtmlReporter) Report(test *stat.TestStat) string {
 	return "html"
 }

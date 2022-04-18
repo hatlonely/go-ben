@@ -1,6 +1,9 @@
 package reporter
 
-import "github.com/hatlonely/go-ben/internal/stat"
+import (
+	"github.com/hatlonely/go-ben/internal/stat"
+	"github.com/hatlonely/go-kit/strx"
+)
 
 type JsonReporterOptions struct{}
 
@@ -15,5 +18,5 @@ type JsonReporter struct {
 }
 
 func (r *JsonReporter) Report(test *stat.TestStat) string {
-	return "Json"
+	return strx.JsonMarshalIndent(test)
 }
