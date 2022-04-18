@@ -276,9 +276,9 @@ var unitGroupTplStr = `
     </div>
 
     <div class="card-body d-flex justify-content-center">
-        <div  class="col-md-12" id="{{ '{}-unit-code'.format(name) }}" style="height: 300px;"></div>
+        <div  class="col-md-12" id="{{ printf "%s-unit-code" .Name }}" style="height: 300px;"></div>
         <script>
-            echarts.init(document.getElementById("{{ '{}-unit-code'.format(name) }}")).setOption({
+            echarts.init(document.getElementById("{{ printf "%s-unit-code" .Name }}")).setOption({
               title: {
                 text: "{{ .I18n.Title.Code }}",
                 left: "center",
@@ -299,7 +299,7 @@ var unitGroupTplStr = `
               series: [
                 {{ range $unit := .UnitGroup.Units }}
                 {
-                  name: "{{ unit.Name }}",
+                  name: "{{ $unit.Name }}",
                   type: "pie",
                   radius: ['{{ (70 / loop.length) * loop.index0 + 15 }}%', '{{ (70 / loop.length) * loop.index + 10 }}%'],
                   avoidLabelOverlap: false,
@@ -326,9 +326,9 @@ var unitGroupTplStr = `
     </div>
 
     <div class="card-body d-flex justify-content-center">
-        <div class="col-md-12" id="{{ '{}-unit-qps'.format(name) }}" style="height: 300px;"></div>
+        <div class="col-md-12" id="{{ printf "%s-unit-qps" .Name }}" style="height: 300px;"></div>
         <script>
-            echarts.init(document.getElementById("{{ '{}-unit-qps'.format(name) }}")).setOption({
+            echarts.init(document.getElementById("{{ printf "%s-unit-qps" .Name }}")).setOption({
               title: {
                 text: "{{ .I18n.Title.QPS }}",
                 left: "center",
@@ -373,9 +373,9 @@ var unitGroupTplStr = `
     </div>
 
     <div class="card-body d-flex justify-content-center">
-        <div class="col-md-12" id="{{ '{}-unit-rate'.format(name) }}" style="height: 300px;"></div>
+        <div class="col-md-12" id="{{ printf "%s-unit-rate" .Name }}" style="height: 300px;"></div>
         <script>
-            echarts.init(document.getElementById("{{ '{}-unit-rate'.format(name) }}")).setOption({
+            echarts.init(document.getElementById("{{ printf "%s-unit-rate" .Name }}")).setOption({
               title: {
                 text: "{{ .I18n.Title.Rate }}",
                 left: "center",
