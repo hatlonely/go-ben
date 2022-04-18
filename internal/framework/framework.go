@@ -162,9 +162,9 @@ func (f *Framework) RunUnitGroup(runtime *Runtime, groupIdx int, groupDesc *Grou
 
 	unitStatChan := make(chan *stat.UnitStat, len(unit))
 	for idx, unitDesc := range unit {
-		go func(idx int, unitDesc *UnitDesc) {
-			f.RunUnit(ctx, runtime, groupDesc.Parallel[idx], groupDesc, unitDesc, unitStatChan)
-		}(idx, &unitDesc)
+		go func(idx int, unitDesc UnitDesc) {
+			f.RunUnit(ctx, runtime, groupDesc.Parallel[idx], groupDesc, &unitDesc, unitStatChan)
+		}(idx, unitDesc)
 	}
 
 	time.Sleep(time.Duration(groupDesc.Seconds) * time.Second)
