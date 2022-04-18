@@ -7,12 +7,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/hatlonely/go-kit/strx"
-
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/hatlonely/go-ben/internal/i18n"
 	"github.com/hatlonely/go-ben/internal/stat"
+	"github.com/hatlonely/go-kit/strx"
 	"github.com/pkg/errors"
 )
 
