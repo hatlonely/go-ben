@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"math"
 	"time"
 
 	"github.com/hatlonely/go-kit/strx"
@@ -77,6 +78,24 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 				items = append(items, map[string]interface{}{
 					"name":  k,
 					"value": v,
+				})
+			}
+			return items
+		},
+		"UnitStageSerialQPS": func(unit *stat.UnitStat) [][]interface{} {
+			var items [][]interface{}
+			for _, stage := range unit.UnitStages {
+				items = append(items, []interface{}{
+					stage.Time, math.Round(stage.QPS*100) / 100,
+				})
+			}
+			return items
+		},
+		"UnitStageSerialRate": func(unit *stat.UnitStat) [][]interface{} {
+			var items [][]interface{}
+			for _, stage := range unit.UnitStages {
+				items = append(items, []interface{}{
+					stage.Time, math.Round(stage.QPS*10000) / 100,
 				})
 			}
 			return items
@@ -383,7 +402,7 @@ var unitGroupTplStr = `
                   smooth: true,
                   symbol: "none",
                   areaStyle: {},
-                  data: {{ JsonMarshal (unit_stage_serial(unit, "qps")) }}
+                  data: {{ JsonMarshal (UnitStageSerialQPS $unit) }}
                 },
                 {{ end }}
               ]
@@ -412,7 +431,7 @@ var unitGroupTplStr = `
               toolbox: {
                 feature: {
                   saveAsImage: {
-                    title: "{{ .I18n.Tooltip.save }}"
+                    title: "{{ .I18n.Tooltip.Save }}"
                   }
                 }
               },
@@ -427,14 +446,14 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {{ for unit in .UnitGroup.Units }}
+                {{ range $unit := .UnitGroup.Units }}
                 {
-                  name: "{{ unit.name }}",
+                  name: "{{ $unit.name }}",
                   type: "line",
                   smooth: true,
                   symbol: "none",
                   areaStyle: {},
-                  data: {{ json.dumps(unit_stage_serial(unit, "rate", "percent")) }}
+                  data: {{ JsonMarshal (UnitStageSerialRate $unit) }}
                 },
                 {{ end }}
               ]
@@ -442,15 +461,15 @@ var unitGroupTplStr = `
         </script>
     </div>
     
-    {{ for mname, monitor in .UnitGroup.monitor.items() }}
-    <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.Title.monitor }}-{{ mname }}</span></div>
-    {{ for metric_name, stat in monitor["stat"].items() }}
+    {{ range $monitorName, $monitor := .UnitGroup.Monitor }}
+    <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.Title.Monitor }}-{{ $monitorName }}</span></div>
+    {{ range $metricName, $stat := $monitor.Stat }}
     <div class="card-body d-flex justify-content-center">
-        <div class="col-md-12" id="{{ '{}-monitor-{}-{}'.format(name, mname, metric_name) }}" style="height: 300px;"></div>
+        <div class="col-md-12" id="{{ printf "%s-monitor-%s-%s" .Name $monitorName $metricName }}" style="height: 300px;"></div>
         <script>
-            echarts.init(document.getElementById("{{ '{}-monitor-{}-{}'.format(name, mname, metric_name) }}")).setOption({
+            echarts.init(document.getElementById("{{ printf "%s-monitor-%s-%s" .Name $monitorName $metricName }}")).setOption({
               title: {
-                text: "{{ metric_name }}",
+                text: "{{ $metricName }}",
                 left: "center",
               },
               textStyle: {
@@ -466,7 +485,7 @@ var unitGroupTplStr = `
               toolbox: {
                 feature: {
                   saveAsImage: {
-                    title: "{{ .I18n.Tooltip.save }}"
+                    title: "{{ .I18n.Tooltip.Save }}"
                   }
                 }
               },
@@ -477,17 +496,17 @@ var unitGroupTplStr = `
               yAxis: {
                 type: "value",
                 axisLabel: {
-                  formatter: yAxisLabelFormatter["{{ monitor["unit"][metric_name] }}"],
+                  formatter: yAxisLabelFormatter["{{ index $monitor.Unit $metricName }}"],
                 }
               },
               series: [
                 {
-                  name: "{{ metric_name }}",
+                  name: "{{ $metricName }}",
                   type: "line",
                   smooth: true,
                   symbol: "none",
                   areaStyle: {},
-                  data: {{ json.dumps(monitor_serial(stat, "value")) }}
+                  data: {{ JsonMarshal (monitor_serial(stat, "value")) }}
                 },
               ]
             });
