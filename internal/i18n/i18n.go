@@ -1,6 +1,7 @@
 package i18n
 
 type Title struct {
+	Report        string
 	Test          string
 	Plan          string
 	UnitGroup     string
@@ -44,6 +45,7 @@ type I18n struct {
 var defaultI18n = map[string]*I18n{
 	"dft": {
 		Title: Title{
+			Report:        "Report",
 			Test:          "Test",
 			Plan:          "Plan",
 			UnitGroup:     "Unit Group",
@@ -78,6 +80,7 @@ var defaultI18n = map[string]*I18n{
 	},
 	"zh": {
 		Title: Title{
+			Report:        "报告",
 			Test:          "测试",
 			Plan:          "计划",
 			UnitGroup:     "单元组",
@@ -112,6 +115,6 @@ var defaultI18n = map[string]*I18n{
 	},
 }
 
-func NewI18n() *I18n {
+func NewI18n(lang string, i18n *I18n) *I18n {
 	return defaultI18n["dft"]
 }
