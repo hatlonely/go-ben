@@ -3,6 +3,8 @@ package reporter
 import (
 	"reflect"
 
+	"github.com/hatlonely/go-ben/internal/stat"
+
 	"github.com/hatlonely/go-kit/refx"
 	"github.com/pkg/errors"
 )
@@ -20,5 +22,5 @@ func NewReporterWithOptions(options *refx.TypeOptions, opts ...refx.Option) (Rep
 }
 
 type Reporter interface {
-	Report() string
+	Report(test *stat.TestStat) string
 }
