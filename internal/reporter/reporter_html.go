@@ -552,13 +552,13 @@ func (r *HtmlReporter) Report(test *stat.TestStat) string {
 
 func (r *HtmlReporter) RenderTest(test *stat.TestStat, name string) string {
 	var buf bytes.Buffer
-	if err := r.reportTpl.Execute(&buf, map[string]interface{}{
+	if err := r.testTpl.Execute(&buf, map[string]interface{}{
 		"Name":      name,
 		"Test":      test,
 		"Customize": r.options,
 		"I18n":      r.i18n,
 	}); err != nil {
-		return fmt.Sprintf("%+v", errors.Wrap(err, "r.reportTpl.Execute failed"))
+		return fmt.Sprintf("%+v", errors.Wrap(err, "r.testTpl.Execute failed"))
 	}
 
 	return buf.String()
@@ -572,7 +572,7 @@ func (r *HtmlReporter) RenderPlan(plan *stat.PlanStat, name string) string {
 		"Customize": r.options,
 		"I18n":      r.i18n,
 	}); err != nil {
-		return fmt.Sprintf("%+v", errors.Wrap(err, "r.reportTpl.Execute failed"))
+		return fmt.Sprintf("%+v", errors.Wrap(err, "r.planTpl.Execute failed"))
 	}
 
 	return buf.String()
@@ -580,13 +580,13 @@ func (r *HtmlReporter) RenderPlan(plan *stat.PlanStat, name string) string {
 
 func (r *HtmlReporter) RenderUnitGroup(unitGroup *stat.UnitGroupStat, name string) string {
 	var buf bytes.Buffer
-	if err := r.planTpl.Execute(&buf, map[string]interface{}{
+	if err := r.unitGroupTpl.Execute(&buf, map[string]interface{}{
 		"Name":      name,
 		"UnitGroup": unitGroupTplStr,
 		"Customize": r.options,
 		"I18n":      r.i18n,
 	}); err != nil {
-		return fmt.Sprintf("%+v", errors.Wrap(err, "r.reportTpl.Execute failed"))
+		return fmt.Sprintf("%+v", errors.Wrap(err, "r.unitGroupTpl.Execute failed"))
 	}
 
 	return buf.String()
