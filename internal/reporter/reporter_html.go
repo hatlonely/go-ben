@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"time"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
@@ -48,6 +49,18 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 			extensions := parser.CommonExtensions | parser.AutoHeadingIDs
 			parser := parser.NewWithExtensions(extensions)
 			return string(markdown.ToHTML([]byte(text), parser, nil))
+		},
+		"Add": func(i int) int {
+			return i + 1
+		},
+		"Percent": func(v float64) string {
+			return fmt.Sprintf("%.2f%%", v*100)
+		},
+		"FormatFloat": func(v float64) string {
+			return fmt.Sprintf("%.2f", v)
+		},
+		"FormatDuration": func(v time.Duration) string {
+			return v.String()
 		},
 	}
 
@@ -219,7 +232,7 @@ var unitGroupTplStr = `
     {{ if .UnitGroup.IsErr }}<div class="card border-danger">{{ else }}<div class="card border-success">{{ end }}
 
     <div class="card-header justify-content-between d-flex">
-        <span class="fw-bolder">{{ .I18n.Title.Summary }} No.{{ group.idx + 1 }}</span>
+        <span class="fw-bolder">{{ .I18n.Title.Summary }} No.{{ Add .UnitGroup.Idx 1 }}</span>
         <span>
             {{ if .UnitGroup.Seconds }}
             <span class="badge bg-success rounded-pill">{{ .UnitGroup.Seconds }}s</span>
@@ -239,22 +252,22 @@ var unitGroupTplStr = `
                     <th>{{ .I18n.Title.Rate }}</th>
                     <th>{{ .I18n.Title.QPS }}</th>
                     <th>{{ .I18n.Title.ResTime }}</th>
-                    {{ for q in .UnitGroup.Quantile }}
-                    <th>{{ .I18n.Title.QuantileShort }}{{ q }}</th>
+                    {{ range $q := .UnitGroup.Quantile }}
+                    <th>{{ .I18n.Title.QuantileShort }}{{ $q }}</th>
                     {{ end }}
                 </tr>
             </thead>
             <tbody>
-                {{ for unit in .UnitGroup.Units }}
+                {{ range $unit := .UnitGroup.Units }}
                 <tr class="text-center">
-                    <td>{{ unit.name }}</td>
-                    <td>{{ unit.parallel }}</td>
-                    <td>{{ unit.total }}</td>
-                    <td>{{ int(unit.rate * 10000) / 100 }}%</td>
-                    <td>{{ int(unit.qps) }}</td>
-                    <td>{{ format_timedelta(unit.res_time) }}</td>
-                    {{ for q in .UnitGroup.Quantile }}
-                    <td>{{ format_timedelta(unit.quantile[q]) }}</td>
+                    <td>{{ $unit.Name }}</td>
+                    <td>{{ $unit.Parallel }}</td>
+                    <td>{{ $unit.Total }}</td>
+                    <td>{{ Percent $unit.rate }}</td>
+                    <td>{{ FormatFloat $unit.QPS }}</td>
+                    <td>{{ FormatDuration $unit.ResTime }}</td>
+                    {{ range $q := .UnitGroup.Quantile }}
+                    <td>{{ FormatDuration (index $unit.Quantile $q) }}</td>
                     {{ end }}
                 </tr>
                 {{ end }}
@@ -284,9 +297,9 @@ var unitGroupTplStr = `
                 }
               },
               series: [
-                {{ for unit in .UnitGroup.Units }}
+                {{ range $unit := .UnitGroup.Units }}
                 {
-                  name: "{{ unit.name }}",
+                  name: "{{ unit.Name }}",
                   type: "pie",
                   radius: ['{{ (70 / loop.length) * loop.index0 + 15 }}%', '{{ (70 / loop.length) * loop.index + 10 }}%'],
                   avoidLabelOverlap: false,
@@ -410,7 +423,7 @@ var unitGroupTplStr = `
         </script>
     </div>
     
-    {{ for mname, monitor in group.monitor.items() }}
+    {{ for mname, monitor in .UnitGroup.monitor.items() }}
     <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.Title.monitor }}-{{ mname }}</span></div>
     {{ for metric_name, stat in monitor["stat"].items() }}
     <div class="card-body d-flex justify-content-center">
