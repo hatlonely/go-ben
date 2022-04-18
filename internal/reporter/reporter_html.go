@@ -207,7 +207,7 @@ var planTplStr = `
             <li class="list-group-item px-{{ .Customize.Padding.X }} py-{{ .Customize.Padding.Y }}">
                 {{ RenderUnitGroup .UnitGroup, '{}-group-{}'.format(name, loop.index0) }}
             </li>
-            {{ endfor }}
+            {{ end }}
         </ul>
         {{ end }}
     </div>
@@ -241,7 +241,7 @@ var unitGroupTplStr = `
                     <th>{{ .I18n.Title.ResTime }}</th>
                     {{ for q in .UnitGroup.Quantile }}
                     <th>{{ .I18n.Title.QuantileShort }}{{ q }}</th>
-                    {{ endfor }}
+                    {{ end }}
                 </tr>
             </thead>
             <tbody>
@@ -255,9 +255,9 @@ var unitGroupTplStr = `
                     <td>{{ format_timedelta(unit.res_time) }}</td>
                     {{ for q in .UnitGroup.Quantile }}
                     <td>{{ format_timedelta(unit.quantile[q]) }}</td>
-                    {{ endfor }}
+                    {{ end }}
                 </tr>
-                {{ endfor }}
+                {{ end }}
             </tbody>
         </table>
     </div>
@@ -306,7 +306,7 @@ var unitGroupTplStr = `
                   },
                   data: {{ json.dumps(dict_to_items(unit.code)) }}
                 },
-                {{ endfor }}
+                {{ end }}
               ]
             });
         </script>
@@ -353,7 +353,7 @@ var unitGroupTplStr = `
                   areaStyle: {},
                   data: {{ json.dumps(unit_stage_serial(unit, "qps")) }}
                 },
-                {{ endfor }}
+                {{ end }}
               ]
             });
         </script>
@@ -404,7 +404,7 @@ var unitGroupTplStr = `
                   areaStyle: {},
                   data: {{ json.dumps(unit_stage_serial(unit, "rate", "percent")) }}
                 },
-                {{ endfor }}
+                {{ end }}
               ]
             });
         </script>
@@ -461,8 +461,8 @@ var unitGroupTplStr = `
             });
         </script>
     </div>
-    {{ endfor }}
-    {{ endfor }}
+    {{ end }}
+    {{ end }}
 </div>
 `
 
