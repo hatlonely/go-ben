@@ -323,9 +323,6 @@ var unitGroupTplStr = `
             {{ if .UnitGroup.Seconds }}
             <span class="badge bg-success rounded-pill">{{ .UnitGroup.Seconds }}s</span>
             {{ end }}
-            {{ if .UnitGroup.Times }}
-            <span class="badge bg-success rounded-pill">{{ .UnitGroup.Times }}</span>
-            {{ end }}
         </span>
     </div>
     <div class="card-body">
@@ -569,15 +566,21 @@ var unitGroupTplStr = `
 		{{- range $unit := .UnitGroup.Units -}}
 		{{- range $code, $step := $unit.ErrLog -}}
 		<li class="list-group-item px-{{ $.Customize.Padding.X }} py-{{ $.Customize.Padding.Y }}">
-		<div class="card"">
+		<div class="card">
 			{{ if $step.Success }}
 			<div class="card border-success">
-			{{ else }}
-			<div class="card border-danger">
-			{{ end }}
 			<div class="card-header justify-content-between d-flex">
 				<span class="fw-bolder">{{ $unit.Name }} {{ $code }}</span>
+				<span class="badge bg-success rounded-pill">{{ index $unit.Code $code }}</span>
 			</div>
+			{{ else }}
+			<div class="card border-danger">
+			<div class="card-header justify-content-between d-flex">
+				<span class="fw-bolder">{{ $unit.Name }} {{ $code }}</span>
+				<span class="badge bg-danger rounded-pill">{{ index $unit.Code $code }}</span>
+			</div>
+			{{ end }}
+
 			<div class="card-body">
 				<pre>
 				{{- JsonMarshalIndent $step -}}
