@@ -133,9 +133,9 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 			}
 			return items
 		},
-		"MonitorSerial": func(monitor *stat.MonitorStat, key string) [][]interface{} {
+		"MonitorSerial": func(measurements []stat.Measurement, key string) [][]interface{} {
 			var items [][]interface{}
-			for _, measurement := range monitor.Stat[key] {
+			for _, measurement := range measurements {
 				items = append(items, []interface{}{
 					measurement.Time.Format(time.RFC3339Nano), measurement.Value,
 				})
