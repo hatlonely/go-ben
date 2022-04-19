@@ -252,29 +252,35 @@ func (f *Framework) RunStep(runtime *Runtime, unitDesc *UnitDesc) *stat.StepStat
 		"seed": seed,
 	}
 	for _, step := range unitDesc.Step {
+		subStepStat := &stat.SubStepStat{}
 		req, err := util.Render(step.Req, renderArgs)
 		if err != nil {
+			stepStat.AddSubStepStat(subStepStat)
 			return stepStat.SetError(errors.WithMessage(err, "util.Render req failed"))
 		}
+		subStepStat.Req = req
 		client := runtime.clientMap[step.Ctx]
 		now := time.Now()
 		name, res, err := client.Do(req)
 		if err != nil {
+			stepStat.AddSubStepStat(subStepStat)
 			stepStat.AddErrStat(name, err)
 			return stepStat
 		}
+		subStepStat.Name = name
+		subStepStat.Res = res
 
 		eval, err := util.Lang.NewEvaluable(step.Res.GroupBy)
 		if err != nil {
-			stepStat.AddErrStat(name, err)
-			return stepStat
+			stepStat.AddSubStepStat(subStepStat)
+			return stepStat.SetError(errors.Wrapf(err, "eval.NewEvaluable failed"))
 		}
 		code, err := eval.EvalString(context.Background(), map[string]interface{}{
 			"res": res,
 		})
 		if err != nil {
-			stepStat.AddErrStat(name, err)
-			return stepStat
+			stepStat.AddSubStepStat(subStepStat)
+			return stepStat.SetError(errors.Wrapf(err, "eval.EvalString failed"))
 		}
 		stepStat.AddSubStepStat(&stat.SubStepStat{
 			Req:     req,

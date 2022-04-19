@@ -38,15 +38,15 @@ type ShellClient struct {
 }
 
 type ShellClientReq struct {
-	Command string            `json:"command,omitempty"`
-	Envs    map[string]string `json:"envs,omitempty"`
-	Decoder string            `json:"decoder,omitempty"`
+	Command string            `json:"command"`
+	Envs    map[string]string `json:"envs"`
+	Decoder string            `json:"decoder"`
 }
 
 type ShellClientRes struct {
-	Stdout   string `json:"stdout,omitempty"`
-	Stderr   string `json:"stderr,omitempty"`
-	ExitCode int    `json:"ExitCode,omitempty"`
+	Stdout   string `json:"stdout"`
+	Stderr   string `json:"stderr"`
+	ExitCode int    `json:"exitCode"`
 }
 
 func (c *ShellClient) Do(reqv interface{}) (string, interface{}, error) {

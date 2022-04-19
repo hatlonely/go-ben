@@ -23,6 +23,7 @@ type Title struct {
 	Quantile      string
 	QuantileShort string
 	Monitor       string
+	ErrLog        string
 }
 
 type Status struct {
@@ -67,6 +68,7 @@ var defaultI18n = map[string]*I18n{
 			Quantile:      "Quantile",
 			QuantileShort: "Q",
 			Monitor:       "Monitor",
+			ErrLog:        "ErrLog",
 		},
 		Status: Status{
 			Fail: "Fail",
@@ -102,6 +104,7 @@ var defaultI18n = map[string]*I18n{
 			Quantile:      "分位数",
 			QuantileShort: "Q",
 			Monitor:       "监测",
+			ErrLog:        "错误日志",
 		},
 		Status: Status{
 			Fail: "失败",

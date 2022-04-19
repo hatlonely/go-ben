@@ -104,7 +104,8 @@ func NewHtmlReporterWithOptions(options *HtmlReporterOptions) (*HtmlReporter, er
 		"EchartCodeRadius2": func(idx int, len int) int {
 			return (70/len)*(idx+1) + 10
 		},
-		"JsonMarshal": strx.JsonMarshal,
+		"JsonMarshal":       strx.JsonMarshal,
+		"JsonMarshalIndent": strx.JsonMarshalIndent,
 		"DictToItems": func(d map[string]int) interface{} {
 			var items []map[string]interface{}
 			for k, v := range d {
@@ -561,6 +562,17 @@ var unitGroupTplStr = `
     </div>
     {{ end }}
     {{ end }}
+
+	<div class="card-header"><span class="fw-bolder">{{ .I18n.Title.ErrLog }}</span></div>
+	<div class="card-body">
+		<pre>
+		{{- range $unit := .UnitGroup.Units -}}
+		{{- range $code, $step := $unit.ErrLog -}}
+		{{ JsonMarshalIndent $step }}
+		{{- end }}
+		{{- end -}}
+		</pre>
+	</div>
 </div>
 `
 

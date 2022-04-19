@@ -30,6 +30,7 @@ type UnitStat struct {
 	Steps                 []*StepStat `json:"-"`
 	QuantileKeys          []string
 	Quantile              map[string]time.Duration
+	ErrLog                map[string]*StepStat
 
 	currentStage *UnitStageStat
 }
@@ -72,6 +73,7 @@ func NewUnitStat(
 		QuantileKeys:          quantileKeys,
 		Quantile:              map[string]time.Duration{},
 		Code:                  map[string]int{},
+		ErrLog:                map[string]*StepStat{},
 	}
 }
 
@@ -82,6 +84,7 @@ func (s *UnitStat) AddStepStat(step *StepStat) {
 		s.Elapse += step.Elapse
 	} else {
 		s.Code[step.Code] += 1
+		s.ErrLog[step.Code] = step
 	}
 
 	s.currentStage.AddStepStat(step)
