@@ -22,7 +22,7 @@ func NewStepStat() *StepStat {
 
 func (s *StepStat) SetError(err error) *StepStat {
 	s.IsErr = true
-	s.Err = err.Error()
+	s.Err = fmt.Sprintf("%+v", err)
 	return s
 }
 

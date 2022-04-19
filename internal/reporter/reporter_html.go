@@ -276,6 +276,11 @@ var planTplStr = `
     <div class="card border-success">
     {{ end }}
     
+        {{ if .Plan.IsErr }}
+        <div class="card-header"><span class="fw-bolder">{{ .I18n.Title.Err }}</span></div>
+        <div class="card-body"><pre>{{ .Plan.Err }}</pre></div>
+        {{ end }}
+
         {{ if .Plan.Description }}
         <div class="card-header"><span class="fw-bolder">{{ .I18n.Title.Description }}</span></div>
         <div class="card-body">{{ Markdown .Plan.Description }}</div>

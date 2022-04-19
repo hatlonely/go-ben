@@ -1,5 +1,7 @@
 package stat
 
+import "fmt"
+
 type PlanStat struct {
 	ID          string
 	Description string
@@ -19,7 +21,7 @@ func NewPlanStat(id string, name string) *PlanStat {
 
 func (s *PlanStat) SetError(err error) *PlanStat {
 	s.IsErr = true
-	s.Err = err.Error()
+	s.Err = fmt.Sprintf("%+v", err)
 	return s
 }
 

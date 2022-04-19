@@ -1,5 +1,7 @@
 package stat
 
+import "fmt"
+
 type TestStat struct {
 	ID          string
 	Directory   string
@@ -22,7 +24,7 @@ func NewTestStat(id string, directory string, name string, description string) *
 
 func (s *TestStat) SetError(err error) *TestStat {
 	s.IsErr = true
-	s.Err = err.Error()
+	s.Err = fmt.Sprintf("%+v", err)
 	return s
 }
 

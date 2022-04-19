@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hatlonely/go-ben/internal/monitor"
+
 	"github.com/hatlonely/go-ben/internal/refcli"
 	"github.com/hatlonely/go-ben/internal/reporter"
 	"github.com/hatlonely/go-ben/internal/seeder"
@@ -150,8 +152,26 @@ func (f *Framework) RunPlan(runtime *Runtime, planID string, plan PlanDesc) *sta
 	planStat := stat.NewPlanStat(planID, plan.Name)
 
 	for idx, groupDesc := range plan.Group {
+		monitors := map[string]monitor.Monitor{}
+		for key, monitorDesc := range plan.Monitor {
+			m, err := monitor.NewMonitorWithOptions(&monitorDesc)
+			if err != nil {
+				return planStat.SetError(err)
+			}
+			m.Collect()
+			monitors[key] = m
+		}
+
+		startTime := time.Now()
 		unitGroupStat := f.RunUnitGroup(runtime, idx, &groupDesc, plan.Unit)
+		endTime := time.Now()
+
+		for key, m := range monitors {
+			unitGroupStat.AddMonitorStat(key, m.Stat(startTime, endTime))
+		}
+
 		planStat.AddUnitGroupStat(unitGroupStat)
+
 	}
 
 	return planStat
