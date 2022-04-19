@@ -47,6 +47,7 @@ func NewPsutilMonitorWithOptions(options *PsutilMonitorOptions) (*PsutilMonitor,
 	ctx, cancel := context.WithCancel(context.Background())
 	return &PsutilMonitor{
 		options: options,
+		metrics: metrics,
 		ctx:     ctx,
 		cancel:  cancel,
 	}, nil

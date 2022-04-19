@@ -154,7 +154,7 @@ func (f *Framework) RunPlan(runtime *Runtime, planID string, plan PlanDesc) *sta
 	for idx, groupDesc := range plan.Group {
 		monitors := map[string]monitor.Monitor{}
 		for key, monitorDesc := range plan.Monitor {
-			m, err := monitor.NewMonitorWithOptions(&monitorDesc)
+			m, err := monitor.NewMonitorWithOptions(&monitorDesc, refx.WithCamelName())
 			if err != nil {
 				return planStat.SetError(err)
 			}

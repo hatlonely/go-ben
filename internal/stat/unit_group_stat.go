@@ -27,6 +27,7 @@ func NewUnitGroupStat(idx int, seconds int, times int, quantile []float64) *Unit
 		Seconds:  seconds,
 		Times:    times,
 		Quantile: quantileKeys,
+		Monitor:  map[string]*MonitorStat{},
 	}
 }
 
