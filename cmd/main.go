@@ -25,7 +25,7 @@ const (
 
 func main() {
 	var options Options
-	refx.Must(flag.Struct(&options, refx.WithCamelName()))
+	refx.Must(flag.Struct(&options, refx.WithKebabName()))
 	refx.Must(flag.Parse(flag.WithJsonVal()))
 	if options.Help {
 		strx.Trac(flag.Usage())
@@ -42,7 +42,10 @@ func main() {
 	fw, err := framework.NewFrameworkWithOptions(&options.Options)
 	refx.Must(err)
 
-	if fw.Run() {
+	if len(options.JsonStat) != 0 {
+		fw.Format()
+		os.Exit(ECOK)
+	} else if fw.Run() {
 		os.Exit(ECOK)
 	}
 

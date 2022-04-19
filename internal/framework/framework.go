@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"strings"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/hatlonely/go-ben/internal/monitor"
 
@@ -69,6 +72,14 @@ type Framework struct {
 
 	id       string
 	reporter reporter.Reporter
+}
+
+func (f *Framework) Format() {
+	buf, err := ioutil.ReadFile(f.options.JsonStat)
+	refx.Must(err)
+	var testStat stat.TestStat
+	refx.Must(jsoniter.Unmarshal(buf, &testStat))
+	fmt.Println(f.reporter.Report(&testStat))
 }
 
 type Runtime struct {
