@@ -26,11 +26,11 @@ func NewPsutilMonitorWithOptions(options *PsutilMonitorOptions) (*PsutilMonitor,
 	}
 
 	unit := map[string]string{
-		"CPU":    "percent",
-		"Mem":    "byte",
-		"Disk":   "byte",
-		"IOR":    "times",
-		"IOW":    "times",
+		"CPU":  "percent",
+		"Mem":  "byte",
+		"Disk": "byte",
+		// "IOR":    "times",
+		// "IOW":    "times",
 		"NetIOR": "bit",
 		"NetIOW": "bit",
 	}
@@ -72,7 +72,7 @@ func (m *PsutilMonitor) Collect() {
 				return
 			case <-ticker.C:
 				if _, ok := m.metrics.Stat["CPU"]; ok {
-					vs, _ := cpu.Percent(time.Now().Sub(now), false)
+					vs, _ := cpu.Percent(time.Duration(0), false)
 					m.metrics.Stat["CPU"] = append(m.metrics.Stat["CPU"], stat.Measurement{
 						Time:  now,
 						Value: vs[0],

@@ -7,4 +7,6 @@ func init() {
 	RegisterReporter("html", NewHtmlReporterWithOptions)
 	RegisterReporter("Text", NewTextReporterWithOptions)
 	RegisterReporter("text", NewTextReporterWithOptions)
+	RegisterReporter("None", &NoneReporter{})
+	RegisterReporter("none", &NoneReporter{})
 }
