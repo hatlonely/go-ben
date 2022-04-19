@@ -509,18 +509,18 @@ var unitGroupTplStr = `
     </div>
     
     {{ range $monitorName, $monitor := .UnitGroup.Monitor }}
-    <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ .I18n.Title.Monitor }}-{{ $monitorName }}</span></div>
+    <div class="card-header justify-content-between d-flex"><span class="fw-bolder">{{ $.I18n.Title.Monitor }}-{{ $monitorName }}</span></div>
     {{ range $metricName, $stat := $monitor.Stat }}
     <div class="card-body d-flex justify-content-center">
-        <div class="col-md-12" id="{{ printf "%s-monitor-%s-%s" .Name $monitorName $metricName }}" style="height: 300px;"></div>
+        <div class="col-md-12" id="{{ printf "%s-monitor-%s-%s" $.Name $monitorName $metricName }}" style="height: 300px;"></div>
         <script>
-            echarts.init(document.getElementById("{{ printf "%s-monitor-%s-%s" .Name $monitorName $metricName }}")).setOption({
+            echarts.init(document.getElementById("{{ printf "%s-monitor-%s-%s" $.Name $monitorName $metricName }}")).setOption({
               title: {
                 text: "{{ $metricName }}",
                 left: "center",
               },
               textStyle: {
-                fontFamily: "{{ .Customize.Font.Echarts }}",
+                fontFamily: "{{ $.Customize.Font.Echarts }}",
               },
               tooltip: {
                 trigger: 'axis',
@@ -532,7 +532,7 @@ var unitGroupTplStr = `
               toolbox: {
                 feature: {
                   saveAsImage: {
-                    title: "{{ .I18n.Tooltip.Save }}"
+                    title: "{{ $.I18n.Tooltip.Save }}"
                   }
                 }
               },
