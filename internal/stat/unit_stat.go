@@ -82,6 +82,7 @@ func (s *UnitStat) AddStepStat(step *StepStat) {
 	if step.Success {
 		s.Success += 1
 		s.Elapse += step.Elapse
+		s.ErrLog["OK"] = step
 	} else {
 		s.Code[step.Code] += 1
 		s.ErrLog[step.Code] = step

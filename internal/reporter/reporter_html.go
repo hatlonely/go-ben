@@ -564,14 +564,31 @@ var unitGroupTplStr = `
     {{ end }}
 
 	<div class="card-header"><span class="fw-bolder">{{ .I18n.Title.ErrLog }}</span></div>
-	<div class="card-body">
-		<pre>
+	<div class="card-body px-0 py-0">
+ 		<ul class="list-group list-group-flush">
 		{{- range $unit := .UnitGroup.Units -}}
 		{{- range $code, $step := $unit.ErrLog -}}
-		{{ JsonMarshalIndent $step }}
-		{{- end }}
+		<li class="list-group-item px-{{ $.Customize.Padding.X }} py-{{ $.Customize.Padding.Y }}">
+		<div class="card"">
+			{{ if $step.Success }}
+			<div class="card border-success">
+			{{ else }}
+			<div class="card border-danger">
+			{{ end }}
+			<div class="card-header justify-content-between d-flex">
+				<span class="fw-bolder">{{ $unit.Name }} {{ $code }}</span>
+			</div>
+			<div class="card-body">
+				<pre>
+				{{- JsonMarshalIndent $step -}}
+				</pre>
+			</div>
+			</div>
+		</div>
+		</li>
 		{{- end -}}
-		</pre>
+		{{- end -}}
+        </ul>
 	</div>
 </div>
 `
