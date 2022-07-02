@@ -3,13 +3,11 @@ package eval
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/PaesslerAG/gval"
 	"github.com/generikvault/gvalstrings"
-	"github.com/hatlonely/go-kit/strx"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )
@@ -32,32 +30,6 @@ var Lang = gval.NewLanguage(
 	gval.PropositionalLogic(),
 	gval.JSON(),
 	gvalstrings.SingleQuoted(),
-	gval.InfixOperator("match", func(x, pattern interface{}) (interface{}, error) {
-		re, err := regexp.Compile(pattern.(string))
-		if err != nil {
-			return nil, err
-		}
-		return re.MatchString(x.(string)), nil
-	}),
-	gval.InfixOperator("in", func(a, b interface{}) (interface{}, error) {
-		col, ok := b.([]interface{})
-		if !ok {
-			return nil, fmt.Errorf("expected type []interface{} for in operator but got %T", b)
-		}
-		for _, value := range col {
-			switch a.(type) {
-			case string:
-				if a.(string) == value.(string) {
-					return true, nil
-				}
-			default:
-				if cast.ToInt64(a) == cast.ToInt64(value) {
-					return true, nil
-				}
-			}
-		}
-		return false, nil
-	}),
 	gval.Function("date", func(arguments ...interface{}) (interface{}, error) {
 		if len(arguments) != 1 {
 			return nil, fmt.Errorf("date() expects exactly one string argument")
@@ -89,15 +61,6 @@ var Lang = gval.NewLanguage(
 		}
 		return nil, fmt.Errorf("date() could not parse %s", s)
 	}),
-	gval.Function("isEmail", func(x interface{}) (bool, error) {
-		return strx.ReEmail.MatchString(x.(string)), nil
-	}),
-	gval.Function("isPhone", func(x interface{}) (bool, error) {
-		return strx.RePhone.MatchString(x.(string)), nil
-	}),
-	gval.Function("isIdentifier", func(x interface{}) (bool, error) {
-		return strx.ReIdentifier.MatchString(x.(string)), nil
-	}),
 	gval.Function("len", func(x interface{}) (int, error) {
 		return len(x.(string)), nil
 	}),
@@ -115,5 +78,5 @@ type GvalstringsEvaluable struct {
 }
 
 func (e *GvalstringsEvaluable) Evaluate(v interface{}) (interface{}, error) {
-	return e.expr.EvalString(context.Background(), v)
+	return e.expr(context.Background(), v)
 }
