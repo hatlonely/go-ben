@@ -10,7 +10,7 @@ func NewEvaluable(typ string, expr string) (Evaluable, error) {
 		return NewYaegiEvaluable(expr)
 	case "Govaluate":
 		return NewGovaluateEvaluable(expr)
-	case "Gvalstrings":
+	case "Gval":
 		return NewGvalstringsEvaluable(expr)
 	}
 

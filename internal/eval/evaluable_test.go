@@ -24,7 +24,7 @@ func eval(v map[string]interface{}) (interface{}, error) {
 }
 `},
 			{"Govaluate", `x + y`},
-			{"Gvalstrings", `x + y`},
+			{"Gval", `x + y`},
 		} {
 			eval, err := NewEvaluable(unit.Type, unit.Expr)
 			So(err, ShouldBeNil)
